@@ -6,7 +6,6 @@ from rasterio.windows import from_bounds
 from rasterio.enums import Resampling
 
 import warnings
-
 warnings.filterwarnings("ignore")
 
 import matplotlib.pyplot as plt
@@ -14,6 +13,8 @@ import matplotlib.pyplot as plt
 from test_position import (
     test_position
 )
+
+from resample import resampleWindow
 
 
 def findMatchingForTile(tile, pathToSen, pathtoDom, domMetaFile):
@@ -69,7 +70,7 @@ def findMatchingForTile(tile, pathToSen, pathtoDom, domMetaFile):
                                     year_of_measurement_sentinel = datestring_sentinel[0:4]
                                     month_of_measurement_sentinel = datestring_sentinel[4:6]
 
-                                    if year_of_measurement_ndom == year_of_measurement_sentinel and\
+                                    if year_of_measurement_ndom == year_of_measurement_sentinel and \
                                             month_of_measurement_ndom == month_of_measurement_sentinel:
                                         sentinel_option = os.path.join(root, directory)
 
@@ -78,14 +79,16 @@ def findMatchingForTile(tile, pathToSen, pathtoDom, domMetaFile):
 
                                         for file in os.listdir(sentinel_option):
                                             if '.tif' in file and (
-                                                'B2' in file or
-                                                'B3' in file or
-                                                'B4' in file or
-                                                ('B8' in file and 'B8A' not in file)
+                                                    'B2' in file or
+                                                    'B3' in file or
+                                                    'B4' in file or
+                                                    ('B8' in file and 'B8A' not in file)
                                             ):
                                                 window = test_position(tile, os.path.join(sentinel_option, file))
 
                                                 data_frame.append(window)
+
+                                                resampleWindow(window)
 
                                         # Saved dataframe here
 
@@ -96,8 +99,8 @@ def findMatchingForTile(tile, pathToSen, pathtoDom, domMetaFile):
                             if found_sentinel_match:
                                 break
 
-                #else:
-                    #print("Tile " + filename + " not downloaded or not in " + pathtoDom + " or not transformed!")
+                # else:
+                # print("Tile " + filename + " not downloaded or not in " + pathtoDom + " or not transformed!")
 
     print("Created " + str(data_set_counter) + " data_sets")
 

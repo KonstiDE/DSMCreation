@@ -10,6 +10,7 @@ from rasterio.warp import reproject, Resampling, calculate_default_transform
 def transform_coordinate_system(tilename, tilepathonly, senpath):
 
     tile = rio.open(os.path.join(tilepathonly, tilename))
+
     sen = rio.open(senpath)
 
     dst_affine, w, h = calculate_default_transform(

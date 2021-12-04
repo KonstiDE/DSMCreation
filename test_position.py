@@ -14,14 +14,28 @@ def test_position(tile_path, sentinel_path):
     sentinel = rio.open(sentinel_path)
     tile = rio.open(tile_path)
 
-    sentinel_transform = sentinel.transform
-
     window = sentinel.read(1, window=from_bounds(
        tile.bounds.left,
        tile.bounds.bottom,
        tile.bounds.right,
        tile.bounds.top,
-       sentinel_transform
+       sentinel.transform
     ))
+
+    window2 = sentinel.read(1, window=from_bounds(
+        round(tile.bounds.left, 1),
+        round(tile.bounds.bottom, 1),
+        round(tile.bounds.right, 1),
+        round(tile.bounds.top, 1),
+        sentinel.transform
+    ))
+
+    w, h = window.shape
+    if w == 99 and h == 99:
+        plt.imshow(window)
+        plt.show()
+        plt.imshow(window2)
+        plt.show()
+        exit(1)
 
     return window
