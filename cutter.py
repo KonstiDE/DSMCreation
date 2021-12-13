@@ -8,38 +8,28 @@ from osgeo import gdal
 
 import pygeodesy
 
+import shutil
+from subprocess import Popen, PIPE, STDOUT
 
-def tile():
-    in_path = 'B:/nrw/nrw_raw/'
-    input_filename = 'ndom50_32280_5652_1_nw_2019.tif'
 
-    out_path = in_path
-    output_filename = 'ndom50_32280_5652_1_nw_2019_'
+def cut(tilepath, tilename):
+    out_path = tilepath
+    output_filename = tilename
 
     tile_size_x = 1000
     tile_size_y = 1000
 
-    profile = rio.open(os.path.join(in_path, input_filename)).profile
-    latitude = profile['transform'][2]
-    longitude = profile['transform'][5]
-
-    print(profile)
-
-    c = pygeodesy.Utm('32', 'N', latitude, longitude, band='U').toMgrs()
-    print(c)
-
-    #print(m)
-    exit(3)
-
-    ds = gdal.Open(os.path.join(in_path, input_filename))
+    ds = gdal.Open(os.path.join(tilepath, tilename))
     band = ds.GetRasterBand(1)
     xsize = band.XSize
     ysize = band.YSize
 
+    c = 0
     for i in range(0, xsize, tile_size_x):
         for j in range(0, ysize, tile_size_y):
-            com_string = "gdal_translate -of GTIFF -srcwin " + str(i) + ", " + str(j) + ", " + str(tile_size_x) + ", " + str(tile_size_y) + " " + str(in_path) + str(input_filename) + " " + str(out_path) + str(output_filename) + str(i) + "_" + str(j) + ".tif"
+            com_string = "gdal_translate -of GTIFF -srcwin " + str(i) + ", " + str(j) + ", " + str(tile_size_x) + ", " + str(tile_size_y) + " " + " " + str(tilepath) + str(tilename) + " " + str(out_path) + "cut_" + str(output_filename.replace(".tif", "")) + "_" + str(c) + ".tif"
             os.system(com_string)
+            c += 1
 
 
 if __name__ == '__main__':

@@ -21,7 +21,7 @@ def transform_coordinate_system(tilename, tilepathonly, senpath):
     profile['crs'] = sen.crs
     profile['transform'] = dst_affine
 
-    file_new = tilepathonly + 'transformed_' + tilename
+    file_new = os.path.join(tilepathonly, 'transformed_' + tilename)
 
     with rio.open(file_new, 'w', **profile) as dst:
         dst.write(tile.read(1), 1)
@@ -30,4 +30,4 @@ def transform_coordinate_system(tilename, tilepathonly, senpath):
 
     os.remove(os.path.join(tilepathonly, tilename))
 
-    return file_new
+    return tilepathonly, 'transformed_' + tilename

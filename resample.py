@@ -6,13 +6,9 @@ import matplotlib.pyplot as plt
 
 
 def resampleWindow(window):
-    print(window.shape)
-    exit(32)
-    #plt.imshow(window)
-    #plt.show()
-
     window_resampled = resample.zoom(window, 20, order=3)
 
-    print(window_resampled.shape)
-    #plt.imshow(window_resampled)
-    #plt.show()
+    plt.imshow(window_resampled)
+    plt.show()
+
+    return window_resampled
