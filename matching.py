@@ -8,6 +8,7 @@ from rasterio.windows import from_bounds
 from rasterio.enums import Resampling
 
 import warnings
+
 warnings.filterwarnings("ignore")
 
 import matplotlib.pyplot as plt
@@ -18,10 +19,15 @@ from test_position import (
 
 from resample import resampleWindow
 
+from helper import (
+    dom_path,
+    sen_path,
+    meta_path
+)
 
-def findMatchingForTile(tile, pathToSen, pathtoDom, domMetaFile):
+
+def findMatchings(pathToSen, pathtoDom, domMetaFile):
     data_set_counter = 0
-    dataset = []
 
     with open(domMetaFile, "r") as f:
         reader = csv.reader(f, delimiter=";")
@@ -41,10 +47,10 @@ def findMatchingForTile(tile, pathToSen, pathtoDom, domMetaFile):
 
                         subfolderpath_to_go = ""
 
-                        path_for_position_test_lb = os.path.join(pathToSen, "LB", "positiontest")
-                        path_for_position_test_lc = os.path.join(pathToSen, "LC", "positiontest")
-                        path_for_position_test_mb = os.path.join(pathToSen, "MB", "positiontest")
-                        path_for_position_test_mc = os.path.join(pathToSen, "MC", "positiontest")
+                        path_for_position_test_lb = os.path.join(pathToSen, "U", "LB", "positiontest")
+                        path_for_position_test_lc = os.path.join(pathToSen, "U", "LC", "positiontest")
+                        path_for_position_test_mb = os.path.join(pathToSen, "U", "MB", "positiontest")
+                        path_for_position_test_mc = os.path.join(pathToSen, "U", "MC", "positiontest")
 
                         positions_to_test = [
                             path_for_position_test_lb,
@@ -99,10 +105,8 @@ def findMatchingForTile(tile, pathToSen, pathtoDom, domMetaFile):
                                             print(tile)
                                             dom = rio.open(tile).read(1)
                                             data_frame.append(dom)
-                                            plt.imshow(dom)
-                                            plt.show()
 
-                                            dataset.append(data_frame)
+                                            np.savez_compressed(data_frame)
 
                                             data_set_counter += 1
                                             found_sentinel_match = True
@@ -112,11 +116,10 @@ def findMatchingForTile(tile, pathToSen, pathtoDom, domMetaFile):
                                     break
 
                     # else:
-                        # print("Tile " + filename + " not downloaded or not in " + pathtoDom + " or not transformed!")
+                    # print("Tile " + filename + " not downloaded or not in " + pathtoDom + " or not transformed!")
 
-    np.savez_compressed("dataset")
     print("Created " + str(data_set_counter) + " data_sets")
 
 
 if __name__ == '__main__':
-    findMatchingForTile("", "B:/sennrw/U/", "D:/domnrw/", "meta/ndom_nw.csv")
+    findMatchings(sen_path, dom_path, meta_path)

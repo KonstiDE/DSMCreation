@@ -17,17 +17,19 @@ from cutter import (
     cut
 )
 
-domnrwpath = "D:/domnrw/"
-sentinel = "B:/sennrw/U/LB/2020/SENTINEL2X_20200515-000000-000_L3A_T32ULB_C_V1-2/" \
-           "SENTINEL2X_20200515-000000-000_L3A_T32ULB_C_V1-2_FRC_B2.tif"
+from helper import (
+    dom_path,
+    sen_example,
+    cutting_length
+)
 
 
 def walkDom():
-    for root, dirs, files in os.walk(domnrwpath, topdown=False):
+    for root, dirs, files in os.walk(dom_path, topdown=False):
         for name in files:
             if "transformed_" not in name:
-                result_path, result_tile = transform_coordinate_system(name, domnrwpath, sentinel)
-                cut(result_path, result_tile)
+                result_path, result_tile = transform_coordinate_system(name, dom_path, sen_example)
+                cut(result_path, result_tile, cutting_length)
 
 
 if __name__ == '__main__':

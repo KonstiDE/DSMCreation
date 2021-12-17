@@ -4,9 +4,14 @@ import scipy.ndimage as resample
 
 import matplotlib.pyplot as plt
 
+from helper import (
+    upsampling_multiplier_sentinel,
+    upsampling_technique
+)
+
 
 def resampleWindow(window):
-    window_resampled = resample.zoom(window, 20, order=3)
+    window_resampled = resample.zoom(window, upsampling_multiplier_sentinel, order=upsampling_technique)
 
     plt.imshow(window_resampled)
     plt.show()

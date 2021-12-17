@@ -8,16 +8,13 @@ from osgeo import gdal
 
 import pygeodesy
 
-import shutil
-from subprocess import Popen, PIPE, STDOUT
 
-
-def cut(tilepath, tilename):
+def cut(tilepath, tilename, cutting_length):
     out_path = tilepath
     output_filename = tilename
 
-    tile_size_x = 1000
-    tile_size_y = 1000
+    tile_size_x = cutting_length
+    tile_size_y = cutting_length
 
     ds = gdal.Open(os.path.join(tilepath, tilename))
     band = ds.GetRasterBand(1)
