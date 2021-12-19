@@ -2,8 +2,12 @@ import json
 import urllib.request as ulib
 import os
 
+from dataset.helper.helper import (
+    dom_path
+)
+
 BASE_DOWNLOAD_URL = "https://www.opengeodata.nrw.de/produkte/geobasis/hm/ndom50_tiff/ndom50_tiff"
-BASE_SAVE_PATH = "D:/domnrw/"
+BASE_SAVE_PATH = dom_path
 
 
 def download():

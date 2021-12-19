@@ -3,40 +3,35 @@ import os
 import numpy as np
 import rasterio as rio
 import csv
-from rasterio.windows import Window
-from rasterio.windows import from_bounds
-from rasterio.enums import Resampling
 
 import warnings
 
 warnings.filterwarnings("ignore")
 
-import matplotlib.pyplot as plt
-
-from test_position import (
+from dataset.modifier.test_position import (
     test_position
 )
 
-from resample import resampleWindow
+from dataset.modifier.resample import resampleWindow
 
-from helper import (
+from dataset.helper.helper import (
     dom_path,
     sen_path,
-    meta_path
+    meta_file
 )
 
 
-def findMatchings(pathToSen, pathtoDom, domMetaFile):
+def createMatching():
     data_set_counter = 0
 
-    with open(domMetaFile, "r") as f:
+    with open(meta_file, "r") as f:
         reader = csv.reader(f, delimiter=";")
         for i, line in enumerate(reader):
             c = 0
             if i > 0:
                 if c <= 3:
                     filename, date_of_measurement = line[0], line[2]
-                    tile = pathtoDom + "cut_transformed_" + filename + "_" + str(c) + ".tif"
+                    tile = dom_path + "cut_transformed_" + filename + "_" + str(c) + ".tif"
                     c += 1
 
                     if os.path.isfile(tile):
@@ -47,10 +42,10 @@ def findMatchings(pathToSen, pathtoDom, domMetaFile):
 
                         subfolderpath_to_go = ""
 
-                        path_for_position_test_lb = os.path.join(pathToSen, "U", "LB", "positiontest")
-                        path_for_position_test_lc = os.path.join(pathToSen, "U", "LC", "positiontest")
-                        path_for_position_test_mb = os.path.join(pathToSen, "U", "MB", "positiontest")
-                        path_for_position_test_mc = os.path.join(pathToSen, "U", "MC", "positiontest")
+                        path_for_position_test_lb = os.path.join(sen_path, "U", "LB", "positiontest")
+                        path_for_position_test_lc = os.path.join(sen_path, "U", "LC", "positiontest")
+                        path_for_position_test_mb = os.path.join(sen_path, "U", "MB", "positiontest")
+                        path_for_position_test_mc = os.path.join(sen_path, "U", "MC", "positiontest")
 
                         positions_to_test = [
                             path_for_position_test_lb,
@@ -115,11 +110,11 @@ def findMatchings(pathToSen, pathtoDom, domMetaFile):
                                 if found_sentinel_match:
                                     break
 
-                    # else:
-                    # print("Tile " + filename + " not downloaded or not in " + pathtoDom + " or not transformed!")
+                    else:
+                        print("Tile " + filename + " not downloaded or not in " + dom_path + " or not transformed!")
 
     print("Created " + str(data_set_counter) + " data_sets")
 
 
 if __name__ == '__main__':
-    findMatchings(sen_path, dom_path, meta_path)
+    createMatching()

@@ -19,21 +19,21 @@ class DoubleConvDown(nn.Module):
         super(DoubleConvDown, self).__init__()
 
         self.residual = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=(3, 3), bias=False),
+            nn.Conv2d(in_channels, out_channels, kernel_size=(3, 3), bias=False, padding=1),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
 
-            nn.Conv2d(out_channels, out_channels, kernel_size=(3, 3), bias=False),
+            nn.Conv2d(out_channels, out_channels, kernel_size=(3, 3), bias=False, padding=1),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         )
 
         self.double_conv = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=(3, 3), bias=False),
+            nn.Conv2d(in_channels, out_channels, kernel_size=(3, 3), bias=False, padding=1),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
 
-            nn.Conv2d(out_channels, out_channels, kernel_size=(3, 3), bias=False),
+            nn.Conv2d(out_channels, out_channels, kernel_size=(3, 3), bias=False, padding=1),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         )
@@ -53,11 +53,11 @@ class DoubleConvUp(nn.Module):
         super(DoubleConvUp, self).__init__()
 
         self.residual = nn.Sequential(
-            nn.Conv2d(channels, channels, kernel_size=(3, 3), bias=False),
+            nn.Conv2d(channels, channels, kernel_size=(3, 3), bias=False, padding=1),
             nn.BatchNorm2d(channels),
             nn.ReLU(inplace=True),
 
-            nn.Conv2d(channels, channels, kernel_size=(3, 3), bias=False),
+            nn.Conv2d(channels, channels, kernel_size=(3, 3), bias=False, padding=1),
             nn.BatchNorm2d(channels),
             nn.ReLU(inplace=True)
         )
@@ -73,13 +73,13 @@ class DoubleConvUp(nn.Module):
         )
 
     def forward(self, x, residual):
-
-        residual = self.residual(x)
+        residual = self.residual(residual)
         x = self.double_conv(x)
 
-        torch.add(x, tf.center_crop(residual, output_size=x.shape[2:]))
+        residual = tf.center_crop(residual, output_size=x.shape[2:])
+        x = torch.add(x, residual)
 
-        return residual
+        return x
 
 
 class DoubleConvBottleNeck(nn.Module):
@@ -87,14 +87,23 @@ class DoubleConvBottleNeck(nn.Module):
         super(DoubleConvBottleNeck, self).__init__()
 
         self.double_conv = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=(3, 3), bias=False),
+            nn.Conv2d(in_channels, out_channels, kernel_size=(3, 3), bias=False, padding=1),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
 
-            nn.Conv2d(out_channels, out_channels, kernel_size=(3, 3), bias=False),
+            nn.Conv2d(out_channels, out_channels, kernel_size=(3, 3), bias=False, padding=1),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         )
 
     def forward(self, x):
         return self.double_conv(x)
+
+
+if __name__ == '__main__':
+    x = torch.Tensor([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
+    y = torch.Tensor([[1, 1, 1], [1, 1, 1], [1, 1, 1]])
+
+    x = torch.add(x, y)
+
+    print(x)
