@@ -20,11 +20,15 @@ from dataset.helper.helper import (
     meta_file
 )
 
+from dataset.builder.dataframe_builder import (
+    build_data_frame
+)
+
 
 def createMatching():
     data_set_counter = 0
 
-    with open(meta_file, "r") as f:
+    with meta_file as f:
         reader = csv.reader(f, delimiter=";")
         for i, line in enumerate(reader):
             c = 0
@@ -81,27 +85,14 @@ def createMatching():
                                                 month_of_measurement_ndom == month_of_measurement_sentinel:
                                             sentinel_option = os.path.join(root, directory)
 
-                                            # Blue, Green, Red, Infrared
-                                            data_frame = []
+                                            data_frame = build_data_frame(sentinel_option, tile)
 
-                                            for file in os.listdir(sentinel_option):
-                                                if '.tif' in file and (
-                                                        'B2' in file or
-                                                        'B3' in file or
-                                                        'B4' in file or
-                                                        ('B8' in file and 'B8A' not in file)
-                                                ):
-                                                    window = test_position(tile, os.path.join(sentinel_option, file))
-                                                    window_resampled = resampleWindow(window)
+                                            np.savez_compressed("dataframe.npz", *data_frame)
+                                            with open("dataframe.npz") as f2:
+                                                f2.__setattr__("sen", directory)
+                                                f2.__setattr__("dom", filename)
 
-                                                    print(file)
-                                                    data_frame.append(window_resampled)
-
-                                            print(tile)
-                                            dom = rio.open(tile).read(1)
-                                            data_frame.append(dom)
-
-                                            np.savez_compressed(data_frame)
+                                            exit(32)
 
                                             data_set_counter += 1
                                             found_sentinel_match = True
@@ -110,8 +101,8 @@ def createMatching():
                                 if found_sentinel_match:
                                     break
 
-                    else:
-                        print("Tile " + filename + " not downloaded or not in " + dom_path + " or not transformed!")
+                    #else:
+                        #print("Tile " + filename + " not downloaded or not in " + dom_path + " or not transformed!")
 
     print("Created " + str(data_set_counter) + " data_sets")
 
