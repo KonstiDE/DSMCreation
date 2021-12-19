@@ -17,3 +17,9 @@ cutting_length = 1000
 
 upsampling_multiplier_sentinel = 20
 upsampling_technique = 3
+
+
+batch_size = 1
+device = "cpu"
+pin_memory = True
+num_workers = 0

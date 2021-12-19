@@ -14,25 +14,30 @@ def view_data_frame(path):
         green = data_frame["arr_" + str(1)]
         red = data_frame["arr_" + str(2)]
         nir = data_frame["arr_" + str(3)]
+        dom = data_frame["arr_" + str(4)]
 
-        plt.imshow(red, cmap='Reds')
+        plt.imshow(red, cmap='Reds_r')
         plt.colorbar()
         plt.title("Red")
         plt.show()
 
-        plt.imshow(green, cmap='Greens')
+        plt.imshow(green, cmap='Greens_r')
         plt.colorbar()
         plt.title("Green")
         plt.show()
 
-        plt.imshow(blue, cmap='Blues')
+        plt.imshow(blue, cmap='Blues_r')
         plt.colorbar()
         plt.title("Blue")
         plt.show()
 
-        plt.imshow(nir, cmap='Purples')
+        plt.imshow(nir, cmap='Purples_r')
         plt.colorbar()
         plt.title("Near Infrared")
+        plt.show()
+
+        plt.imshow(dom, cmap='viridis')
+        plt.title("Sentinel")
         plt.show()
 
         red = red / np.max(red)
@@ -47,4 +52,5 @@ def view_data_frame(path):
 
 
 if __name__ == '__main__':
-    view_data_frame("C:/Users/Caipi/PycharmProjects/NRW/ndom50_32342_5729_1_nw_2018~SENTINEL2X_20180515-000000-000_L3A_T32ULC_C_V1-2.npz")
+    view_data_frame("C:/Users/Caipi/PycharmProjects/NRW/dataset/data/train/ndom50_32342_5729_1_nw_2018"
+                    "~SENTINEL2X_20180515-000000-000_L3A_T32ULC_C_V1-2.npz")
