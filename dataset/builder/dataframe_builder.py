@@ -1,11 +1,11 @@
 import os
 import rasterio as rio
 
-from ..modifier.resample import (
+from dataset.modifier.resample import (
     resampleWindow
 )
 
-from ..modifier.test_position import (
+from dataset.modifier.test_position import (
     test_position
 )
 
@@ -21,6 +21,7 @@ def build_data_frame(sentinel_option_folder, tile):
                 'B4' in file or
                 ('B8' in file and 'B8A' not in file)
         ):
+
             window = test_position(tile, os.path.join(sentinel_option_folder, file))
             window_resampled = resampleWindow(window)
 

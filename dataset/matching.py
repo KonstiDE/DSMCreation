@@ -87,12 +87,7 @@ def createMatching():
 
                                             data_frame = build_data_frame(sentinel_option, tile)
 
-                                            np.savez_compressed("dataframe.npz", *data_frame)
-                                            with open("dataframe.npz") as f2:
-                                                f2.__setattr__("sen", directory)
-                                                f2.__setattr__("dom", filename)
-
-                                            exit(32)
+                                            np.savez_compressed(filename + "~" + directory + ".npz", *data_frame)
 
                                             data_set_counter += 1
                                             found_sentinel_match = True
