@@ -21,6 +21,8 @@ To setup the system, you to download to datasets. The North Rhine-Westphalia
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|- LC\
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|- ...
   \
+  For the nDsm dataset, a download script is provided in `NRW → dataset → download.py`. You can modify the output path of this script in `NRW → dataset → helper → helper.py` by the variable `dom_path`. 
+  \
   \
   \
   &nbsp;
@@ -41,5 +43,8 @@ The matching step later on needs to match the position of each nDsm tile to a se
   \
   &nbsp;
   
-- Step 3: 
-  
+- Step 3: Executing scripts\
+There are a couple of scripts needed to manipulate the dataset to get it ready
+  for the neural network which takes the data on. At first configure the `helper.py` in 
+  `NRW → dataset → helper → helper.py`. The variables descriptions are shown in the follwoing list:
+  - 
