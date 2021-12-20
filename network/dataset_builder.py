@@ -27,12 +27,12 @@ class DsmDataset(Dataset):
         green = data_frame["arr_" + str(1)]
         red = data_frame["arr_" + str(2)]
         nir = data_frame["arr_" + str(3)]
+        dom = data_frame["arr_" + str(4)]
 
-        sentinel = np.stack((red, green, blue, nir)).astype(np.float32)
-        dsm = self.data["arr_" + str(index)][4]
+        sentinel = np.stack((red, green, blue, nir))
 
         sentinel = torch.Tensor(sentinel)
-        dsm = torch.Tensor(dsm)
+        dsm = torch.Tensor(dom)
 
         return sentinel, dsm
 

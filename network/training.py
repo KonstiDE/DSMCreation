@@ -16,6 +16,9 @@ from dataset_builder import (
 )
 
 from dataset.helper.helper import (
+    path_train,
+    path_validation,
+    path_test,
     batch_size,
     num_workers,
     device,
@@ -25,6 +28,8 @@ from dataset.helper.helper import (
 from pytorchtools import (
     EarlyStopping
 )
+
+from unet_complete_padding_1000_to_1000 import UNET
 
 
 def train(epoch, loader, loss_fn, optimizer, scaler, model):
@@ -131,8 +136,8 @@ def run(num_epochs, lr):
         overall_validation_mse = checkpoint['validation_mses']
         early_stopping = checkpoint['early_stopping']
 
-    train_loader = get_loader(TRAIN_NPZ_DIR, BATCH_SIZE, NUM_WORKERS, PIN_MEMORY)
-    validation_loader = get_loader(VALIDATION_NPZ_DIR, BATCH_SIZE, NUM_WORKERS, PIN_MEMORY)
+    train_loader = get_loader(path_train, batch_size, num_workers, pin_memory)
+    validation_loader = get_loader(path_validation, batch_size, num_workers, pin_memory)
 
     for epoch in range(epochs_done + 1, num_epochs + 1):
         training_loss, training_mae, training_mse = train(epoch, train_loader, loss_fn, optimizer, scaler, model)

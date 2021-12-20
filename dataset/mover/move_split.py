@@ -3,9 +3,9 @@ import random
 
 from dataset.helper.helper import (
     split,
-    output_train,
-    output_validation,
-    output_test
+    path_train,
+    path_validation,
+    path_test
 )
 
 import shutil
