@@ -8,7 +8,6 @@ from rasterio.warp import reproject, Resampling, calculate_default_transform
 
 
 def transform_coordinate_system(tilename, tilepathonly, senpath):
-
     tile = rio.open(os.path.join(tilepathonly, tilename))
 
     sen = rio.open(senpath)
@@ -27,7 +26,5 @@ def transform_coordinate_system(tilename, tilepathonly, senpath):
         dst.write(tile.read(1), 1)
 
     tile.close()
-
-    os.remove(os.path.join(tilepathonly, tilename))
 
     return tilepathonly, 'transformed_' + tilename

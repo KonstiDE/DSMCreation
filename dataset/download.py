@@ -2,7 +2,7 @@ import json
 import urllib.request as ulib
 import os
 
-from dataset.helper.helper import (
+from helper.dataset_helper import (
     dom_path
 )
 
@@ -25,6 +25,8 @@ def download():
                     "{}/{}".format(BASE_DOWNLOAD_URL, current_fn),
                     "{}/{}".format(BASE_SAVE_PATH, current_fn)
                 )
+            else:
+                print(current_fn + " is already downloaded")
 
 
 if __name__ == '__main__':

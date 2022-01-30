@@ -1,8 +1,10 @@
+import os
+import random
+
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
 import torch
 import albumentations as A
-from albumentations.pytorch.transforms import ToTensorV2
 
 
 train_transform = A.Compose(
@@ -14,20 +16,32 @@ train_transform = A.Compose(
 )
 
 
-class DsmDataset(Dataset):
-    def __init__(self, npz_dir, augmented=False):
-        self.data = np.load(npz_dir, allow_pickle=True)
-        self.augmented = augmented
+class NrwDataSet(Dataset):
+    def __init__(self, npz_dir, augmented=False, max_amount=0):
+
+        self.dataset = []
+        files = os.listdir(npz_dir)
+        if max_amount == 0:
+            max_amount = len(files)
+
+        for i in range(max_amount):
+            file = random.choice(files)
+            self.dataset.append(os.path.join(npz_dir, file))
+            self.augmented = augmented
+            files.remove(file)
 
     def __len__(self):
-        return len(self.data)
+        return len(self.dataset)
 
     def __getitem__(self, index):
-        blue = data_frame["arr_" + str(0)]
-        green = data_frame["arr_" + str(1)]
-        red = data_frame["arr_" + str(2)]
-        nir = data_frame["arr_" + str(3)]
-        dom = data_frame["arr_" + str(4)]
+        dataframepath = self.dataset[index]
+        dataframe = np.load(dataframepath, allow_pickle=True)
+
+        blue = dataframe["arr_" + str(0)]
+        green = dataframe["arr_" + str(1)]
+        red = dataframe["arr_" + str(2)]
+        nir = dataframe["arr_" + str(3)]
+        dom = dataframe["arr_" + str(4)]
 
         sentinel = np.stack((red, green, blue, nir))
 
@@ -37,8 +51,8 @@ class DsmDataset(Dataset):
         return sentinel, dsm
 
 
-def get_loader(npz_dir, batch_size, num_workers=2, pin_memory=True, augmented=False, shuffle=True):
-    train_ds = DsmDataset(npz_dir, augmented)
+def get_loader(npz_dir, max_amount, batch_size, num_workers=2, pin_memory=True, augmented=False, shuffle=True):
+    train_ds = NrwDataSet(npz_dir, augmented, max_amount)
 
     train_loader = DataLoader(
         train_ds,
@@ -50,5 +64,5 @@ def get_loader(npz_dir, batch_size, num_workers=2, pin_memory=True, augmented=Fa
     return train_loader
 
 
-def get_dataset(npz_dir):
-    return DsmDataset(npz_dir)
+def get_dataset(npz_dir, max_amount):
+    return NrwDataSet(npz_dir, max_amount)

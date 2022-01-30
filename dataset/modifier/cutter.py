@@ -6,8 +6,6 @@ import rasterio as rio
 import numpy as np
 from osgeo import gdal
 
-import pygeodesy
-
 
 def cut(tilepath, tilename, cutting_length):
     out_path = tilepath
@@ -28,6 +26,4 @@ def cut(tilepath, tilename, cutting_length):
             os.system(com_string)
             c += 1
 
-
-if __name__ == '__main__':
-    tile()
+    os.remove(os.path.join(tilepath, tilename))

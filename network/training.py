@@ -3,22 +3,26 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import sklearn.metrics as skl
-import sklearn.utils.class_weight as class_weight
 from tqdm.auto import tqdm as prog
 import matplotlib.pyplot as plt
 from numpy import savetxt
 import statistics as s
 import numpy as np
+import sys
+sys.path.append(os.getcwd())
+
+import shutup
+shutup.please()
 
 from dataset_builder import (
-    get_loader,
-    get_dataset
+    get_loader
 )
 
-from dataset.helper.helper import (
-    path_train,
-    path_validation,
-    path_test,
+from dataset.helper.dataset_helper import (
+    split
+)
+
+from network.helper.network_helper import (
     batch_size,
     num_workers,
     device,
@@ -29,7 +33,7 @@ from pytorchtools import (
     EarlyStopping
 )
 
-from unet_complete_padding_1000_to_1000 import UNET
+from unet_complete_padding_1000_to_1000.model import UNET
 
 
 def train(epoch, loader, loss_fn, optimizer, scaler, model):
@@ -44,8 +48,8 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model):
     for batch_index, (data, target) in enumerate(loop):
         optimizer.zero_grad(set_to_none=True)
 
-        data = model(data.to(DEVICE))
-        target = target.unsqueeze(1).to(DEVICE)
+        data = model(data.to(device))
+        target = target.unsqueeze(1).to(device)
 
         with torch.cuda.amp.autocast():
             loss = loss_fn(data, target)
@@ -56,8 +60,8 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model):
 
         loss_value = loss.item()
 
-        data = data.view(-1).detach().cpu()
-        target = target.view(-1).detach().cpu()
+        data = data.contiguous().view(-1).detach().cpu()
+        target = target.contiguous().view(-1).detach().cpu()
 
         running_mae.append(skl.mean_absolute_error(target, data))
         running_mse.append(skl.mean_squared_error(target, data))
@@ -77,16 +81,16 @@ def valid(epoch, loader, loss_fn, model):
 
     for batch_index, (data, target) in enumerate(loop):
 
-        data = model(data.to(DEVICE))
-        target = target.unsqueeze(1).to(DEVICE)
+        data = model(data.to(device))
+        target = target.unsqueeze(1).to(device)
 
         with torch.no_grad():
             loss = loss_fn(data, target)
 
         loss_value = loss.item()
 
-        data = data.view(-1).detach().cpu()
-        target = target.view(-1).detach().cpu()
+        data = data.contiguous().view(-1).detach().cpu()
+        target = target.contiguous().view(-1).detach().cpu()
 
         running_mae.append(skl.mean_absolute_error(target, data))
         running_mse.append(skl.mean_squared_error(target, data))
@@ -98,12 +102,15 @@ def valid(epoch, loader, loss_fn, model):
 
 
 def run(num_epochs, lr):
+    torch.cuda.empty_cache()
 
-    model = UNET(in_channels=4, out_channels=1).to(DEVICE)
+    model = UNET(in_channels=4, out_channels=1)
     optimizer = optim.Adam(model.parameters(), lr=lr)
-    loss_fn = nn.MSELoss()
+    loss_fn = nn.L1Loss()
     scaler = torch.cuda.amp.GradScaler()
     early_stopping = EarlyStopping(patience=5, verbose=True)
+    path_train = split['train'][1]
+    path_validation = split['validation'][1]
 
     epochs_done = 0
 
@@ -123,10 +130,11 @@ def run(num_epochs, lr):
     if not os.path.isdir(path):
         os.mkdir(path)
 
-    if os.path.isfile(path + "model.pt"):
-        checkpoint = torch.load(path + "model.pt")
+    if os.path.isfile(path + "model_regression.pt"):
+        checkpoint = torch.load(path + "model_regression.pt", map_location='cpu')
         model.load_state_dict(checkpoint['model_state_dict'])
-        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        optimizer = optim.Adam(model.parameters(), lr=lr)
+        model.to(device)
         epochs_done = checkpoint['epoch']
         overall_training_loss = checkpoint['training_losses']
         overall_validation_loss = checkpoint['validation_losses']
@@ -136,8 +144,8 @@ def run(num_epochs, lr):
         overall_validation_mse = checkpoint['validation_mses']
         early_stopping = checkpoint['early_stopping']
 
-    train_loader = get_loader(path_train, batch_size, num_workers, pin_memory)
-    validation_loader = get_loader(path_validation, batch_size, num_workers, pin_memory)
+    train_loader = get_loader(path_train, 700, batch_size, num_workers, pin_memory)
+    validation_loader = get_loader(path_validation, 300, batch_size, num_workers, pin_memory)
 
     for epoch in range(epochs_done + 1, num_epochs + 1):
         training_loss, training_mae, training_mse = train(epoch, train_loader, loss_fn, optimizer, scaler, model)
@@ -171,7 +179,7 @@ def run(num_epochs, lr):
             'early_stopping': early_stopping
         }, path + "model_regression.pt")
 
-        metrics = numpy.array([
+        metrics = np.array([
             overall_training_loss,
             overall_validation_loss,
             overall_training_mae,
@@ -188,7 +196,7 @@ def run(num_epochs, lr):
     plt.savefig(path + "losses.png")
     plt.show()
 
-    metrics = numpy.array([
+    metrics = np.array([
         overall_training_loss,
         overall_validation_loss,
         overall_training_mae,

@@ -4,7 +4,7 @@ import scipy.ndimage as resample
 
 import matplotlib.pyplot as plt
 
-from ..helper.helper import (
+from ..helper.dataset_helper import (
     upsampling_multiplier_sentinel,
     upsampling_technique
 )

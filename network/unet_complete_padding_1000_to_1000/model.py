@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torchvision.transforms.functional as tf
 
 from network.unet_complete_padding_1000_to_1000.layers import (
     DoubleConvDown,
@@ -14,7 +13,7 @@ class UNET(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(UNET, self).__init__()
 
-        features = [in_channels, 64, 128, 256, 512]
+        features = [in_channels, 64, 128, 256, 512, 1024]
 
         self.down_convs = nn.ModuleList()
         self.up_convs = nn.ModuleList()
@@ -38,13 +37,11 @@ class UNET(nn.Module):
         skip_connections = []
 
         for down_conv in self.down_convs:
-            print(x.shape)
             x, residual = down_conv(x)
             skip_connections.append(residual)
             x = self.pool(x)
 
         x = self.bottleneck(x)
-        print(x.shape)
 
         skip_connections = skip_connections[::-1]
 
@@ -58,8 +55,6 @@ class UNET(nn.Module):
 if __name__ == '__main__':
     unet = UNET(in_channels=4, out_channels=1)
 
-    y = torch.randn(1, 4, 1000, 1000)
-
+    y = torch.randn(1, 4, 2000, 2000)
     out = unet(y)
-
     print(out.shape)

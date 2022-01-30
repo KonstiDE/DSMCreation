@@ -52,5 +52,6 @@ def view_data_frame(path):
 
 
 if __name__ == '__main__':
-    view_data_frame("C:/Users/Caipi/PycharmProjects/NRW/dataset/data/train/ndom50_32342_5729_1_nw_2018"
-                    "~SENTINEL2X_20180515-000000-000_L3A_T32ULC_C_V1-2.npz")
+    view_data_frame("/home/fkt48uj/nrw/dataset/data/train/" +
+                    "ndom50_32509_5725_1_nw_2017_index_0~SENTINEL2X_20170615-000000-000_L3A_T32UMC_C_V1-2.npz"
+                    )
