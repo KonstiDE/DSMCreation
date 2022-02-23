@@ -1,6 +1,4 @@
 import os
-import random
-
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
 import torch
@@ -17,18 +15,12 @@ train_transform = A.Compose(
 
 
 class NrwDataSet(Dataset):
-    def __init__(self, npz_dir, augmented=False, max_amount=0):
+    def __init__(self, npz_dir, augmented=False):
 
         self.dataset = []
-        files = os.listdir(npz_dir)
-        if max_amount == 0:
-            max_amount = len(files)
-
-        for i in range(max_amount):
-            file = random.choice(files)
+        for file in os.listdir(npz_dir):
             self.dataset.append(os.path.join(npz_dir, file))
             self.augmented = augmented
-            files.remove(file)
 
     def __len__(self):
         return len(self.dataset)
@@ -48,11 +40,11 @@ class NrwDataSet(Dataset):
         sentinel = torch.Tensor(sentinel)
         dsm = torch.Tensor(dom)
 
-        return sentinel, dsm
+        return sentinel, dsm, dataframepath
 
 
-def get_loader(npz_dir, max_amount, batch_size, num_workers=2, pin_memory=True, augmented=False, shuffle=True):
-    train_ds = NrwDataSet(npz_dir, augmented, max_amount)
+def get_loader(npz_dir, batch_size, num_workers=2, pin_memory=True, augmented=False, shuffle=True):
+    train_ds = NrwDataSet(npz_dir, augmented)
 
     train_loader = DataLoader(
         train_ds,
@@ -64,5 +56,5 @@ def get_loader(npz_dir, max_amount, batch_size, num_workers=2, pin_memory=True, 
     return train_loader
 
 
-def get_dataset(npz_dir, max_amount):
-    return NrwDataSet(npz_dir, max_amount)
+def get_dataset(npz_dir):
+    return NrwDataSet(npz_dir)

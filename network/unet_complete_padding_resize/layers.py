@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torchvision.transforms.functional as tf
-import numpy as np
 
 
 class UpSample(nn.Module):
@@ -39,47 +38,29 @@ class DoubleConvDown(nn.Module):
         )
 
     def forward(self, x):
-
-        residual = x
-        x = self.double_conv(x)
-
-        residual = self.residual(residual)
-
-        return x, residual
+        return self.double_conv(x)
 
 
 class DoubleConvUp(nn.Module):
-    def __init__(self, channels):
+    def __init__(self, in_channels, out_channels):
         super(DoubleConvUp, self).__init__()
 
-        self.residual = nn.Sequential(
-            nn.Conv2d(channels, channels, kernel_size=(3, 3), bias=False, padding=1),
-            nn.BatchNorm2d(channels),
-            nn.ReLU(inplace=True),
-
-            nn.Conv2d(channels, channels, kernel_size=(3, 3), bias=False, padding=1),
-            nn.BatchNorm2d(channels),
-            nn.ReLU(inplace=True)
-        )
-
         self.double_conv = nn.Sequential(
-            nn.Conv2d(channels, channels, kernel_size=(3, 3), bias=False, padding=1),
-            nn.BatchNorm2d(channels),
+            nn.Conv2d(in_channels, out_channels, kernel_size=(3, 3), bias=False, padding=1),
+            nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
 
-            nn.Conv2d(channels, channels, kernel_size=(3, 3), bias=False, padding=1),
-            nn.BatchNorm2d(channels),
+            nn.Conv2d(out_channels, out_channels, kernel_size=(3, 3), bias=False, padding=1),
+            nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         )
 
-    def forward(self, x, residual):
-        residual = self.residual(residual)
-        x = self.double_conv(x)
+    def forward(self, x, skip_connection):
+        skip_connection = tf.resize(skip_connection, size=x.shape[2:])
 
-        residual = tf.center_crop(residual, output_size=x.shape[2:])
-        x = torch.add(x, residual)
+        x = torch.concat((x, skip_connection), dim=1)
 
-        return x
+        return self.double_conv(x)
 
 
 class DoubleConvBottleNeck(nn.Module):
@@ -101,9 +82,9 @@ class DoubleConvBottleNeck(nn.Module):
 
 
 if __name__ == '__main__':
-    x = torch.Tensor([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
-    y = torch.Tensor([[1, 1, 1], [1, 1, 1], [1, 1, 1]])
+    a = torch.Tensor([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
+    b = torch.Tensor([[1, 1, 1], [1, 1, 1], [1, 1, 1]])
 
-    x = torch.add(x, y)
+    a = torch.add(a, b)
 
-    print(x)
+    print(a)

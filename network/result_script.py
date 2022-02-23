@@ -1,58 +1,71 @@
-import os
-import random
+import os.path
 
-import rasterio as rio
 import matplotlib.pyplot as plt
-import sklearn.metrics as skl
 import torch
-import network.pytorchtools as pytorchtools
-
-from network.unet_complete_padding_1000_to_1000.model import (
-    UNET
-)
+from PIL import Image
 
 from network.dataset_builder import (
     get_dataset
 )
+from network.unet_bachelor.model import UNET_BACHELOR
 
-from network.helper.network_helper import (
-    device
-)
+import torchvision.transforms.functional as tf
 
 
 def test(amount, model_path, test_data_path):
-    unet = UNET(in_channels=4, out_channels=1).cpu()
+    unet = UNET_BACHELOR(in_channels=4, out_channels=1).cpu()
     unet.load_state_dict(torch.load(model_path)['model_state_dict'])
 
-    loader = get_dataset(test_data_path, 100)
+    unet.eval()
+    torch.no_grad()
+
+    loader = get_dataset(test_data_path)
     c = 0
 
-    for (data, target) in loader:
-        if c >= amount:
+    if not os.path.exists("results"):
+        os.mkdir("results")
+
+    for (data, target, src_path) in loader:
+        if 0 < amount <= c:
             break
 
         data = data.unsqueeze(0).cpu()
-        target = target.cpu()
-
-        target = target.squeeze(0).squeeze(0).detach()
-        prediction = unet(data).squeeze(0).squeeze(0).detach().cpu()
+        prediction = unet(data)
 
         print(prediction.shape)
+        print(target.shape)
 
-        mae = skl.mean_absolute_error(target, prediction)
-        mse = skl.mean_squared_error(target, prediction)
+        target = target.unsqueeze(0).unsqueeze(0)
 
-        print(mae)
-        print(mse)
+        target = tf.resize(target, size=prediction.shape[2:])
 
+        prediction = prediction.squeeze(0).squeeze(0).detach().cpu()
+        target = target.squeeze(0).squeeze(0).detach().cpu()
+
+        # mae = skl.mean_absolute_error(target, prediction)
+        # mse = skl.mean_squared_error(target, prediction)
+
+        # print(mae)
+        # print(mse)
+
+        fig = plt.figure()
         plt.imshow(target, cmap="viridis")
-        plt.show()
+        plt.colorbar()
+        plt.savefig("results/" + os.path.basename(src_path) + "_target.png")
+        plt.close(fig)
 
+        fig = plt.figure()
         plt.imshow(prediction, cmap="viridis")
-        plt.show()
+        plt.colorbar()
+        plt.savefig("results/" + os.path.basename(src_path) + "_pred.png")
+        plt.close(fig)
 
         c += 1
 
 
 if __name__ == '__main__':
-    test(10, "/home/fkt48uj/nrw/results_MSELoss_Adam/model_regression.pt", "/home/fkt48uj/nrw/dataset/data/test/")
+    test(
+        10,
+        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_BACHELOR/model.pt",
+        "/home/fkt48uj/nrw/dataset/data/test/"
+    )

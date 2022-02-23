@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from network.unet_complete_padding_1000_to_1000.layers import (
+from network.unet_complete_padding_resize.layers import (
     DoubleConvDown,
     DoubleConvUp,
     DoubleConvBottleNeck,
@@ -13,7 +13,7 @@ class UNET(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(UNET, self).__init__()
 
-        features = [in_channels, 64, 128, 256, 512, 1024]
+        features = [in_channels, 64, 128, 256, 512]
 
         self.down_convs = nn.ModuleList()
         self.up_convs = nn.ModuleList()
@@ -30,15 +30,15 @@ class UNET(nn.Module):
         features = features[::-1]
 
         for i in range(0, len(features) - 2):
-            self.up_convs.append(DoubleConvUp(features[i + 1]))
+            self.up_convs.append(DoubleConvUp(features[i], features[i + 1]))
             self.up_trans.append(UpSample(features[i], features[i + 1]))
 
     def forward(self, x):
         skip_connections = []
 
         for down_conv in self.down_convs:
-            x, residual = down_conv(x)
-            skip_connections.append(residual)
+            x = down_conv(x)
+            skip_connections.append(x)
             x = self.pool(x)
 
         x = self.bottleneck(x)
@@ -55,6 +55,8 @@ class UNET(nn.Module):
 if __name__ == '__main__':
     unet = UNET(in_channels=4, out_channels=1)
 
-    y = torch.randn(1, 4, 2000, 2000)
+    y = torch.randn(1, 4, 1000, 1000)
+
     out = unet(y)
+
     print(out.shape)
