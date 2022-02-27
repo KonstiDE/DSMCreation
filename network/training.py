@@ -15,7 +15,7 @@ sys.path.append(os.getcwd())
 import shutup
 shutup.please()
 
-from dataset_builder import (
+from dataset_provider import (
     get_loader
 )
 
@@ -47,14 +47,14 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model):
     #running_mae = []
     #running_mse = []
 
-    for batch_index, (data, target, _) in enumerate(loop):
+    for batch_index, (data, target, dataframepath) in enumerate(loop):
         optimizer.zero_grad(set_to_none=True)
 
         data = model(data.to(device))
         target = target.unsqueeze(1).to(device)
 
         with torch.cuda.amp.autocast():
-            loss = loss_fn(data, tf.resize(target, size=data.shape[2:]))
+            loss = loss_fn(data, target)
 
         scaler.scale(loss).backward()
         scaler.step(optimizer)
@@ -62,11 +62,13 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model):
 
         loss_value = loss.item()
 
-        #data = data.view(-1).detach().cpu()
-        #target = target.view(-1).detach().cpu()
+        # outlier_file.write(dataframepath[0] + " " + str(loss_value) + "\n")
 
-        #running_mae.append(skl.mean_absolute_error(target, data))
-        #running_mse.append(skl.mean_squared_error(target, data))
+        # data = data.view(-1).detach().cpu()
+        # target = target.view(-1).detach().cpu()
+
+        # running_mae.append(skl.mean_absolute_error(target, data))
+        # running_mse.append(skl.mean_squared_error(target, data))
 
         loop.set_postfix(info="Epoch {}, train, loss={:.5f}".format(epoch, loss_value))
         running_loss.append(loss_value)
@@ -80,24 +82,26 @@ def valid(epoch, loader, loss_fn, model):
     loop = prog(loader)
 
     running_loss = []
-    #running_mae = []
-    #running_mse = []
+    # running_mae = []
+    # running_mse = []
 
-    for batch_index, (data, target, _) in enumerate(loop):
+    for batch_index, (data, target, dataframepath) in enumerate(loop):
 
         data = model(data.to(device))
         target = target.unsqueeze(1).to(device)
 
         with torch.no_grad():
-            loss = loss_fn(data, tf.resize(target, size=data.shape[2:]))
+            loss = loss_fn(data, target)
 
         loss_value = loss.item()
 
-        #data = data.view(-1).detach().cpu()
-        #target = target.view(-1).detach().cpu()
+        # outlier_file.write(dataframepath[0] + " " + str(loss_value) + "\n")
 
-        #running_mae.append(skl.mean_absolute_error(target, data))
-        #running_mse.append(skl.mean_squared_error(target, data))
+        # data = data.view(-1).detach().cpu()
+        # target = target.view(-1).detach().cpu()
+
+        # running_mae.append(skl.mean_absolute_error(target, data))
+        # running_mse.append(skl.mean_squared_error(target, data))
 
         loop.set_postfix(info="Epoch {}, valid, loss={:.5f}".format(epoch, loss_value))
         running_loss.append(loss_value)
@@ -131,6 +135,10 @@ def run(num_epochs, lr):
         str(optimizer.__class__.__name__),
         str(UNET_BACHELOR.__qualname__)
     )
+
+    # training_outlier_file = open(os.path.join(path, "training_outlier_detection.txt"), mode="a+")
+    # validation_outlier_file = open(os.path.join(path, "validation_outlier_detection.txt"), mode="a+")
+
     if not os.path.isdir(path):
         os.mkdir(path)
 
@@ -216,4 +224,4 @@ def run(num_epochs, lr):
 
 
 if __name__ == '__main__':
-    run(num_epochs=100, lr=1e-04)
+    run(num_epochs=10, lr=1e-04)

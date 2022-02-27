@@ -21,15 +21,15 @@ class DoubleConv(nn.Module):
         self.out_channels = out_channels
 
         self.relu = nn.ReLU(inplace=True)
-        self.correctance = nn.Conv2d(in_channels, out_channels, kernel_size=(1, 1), bias=False, padding=1)
+        self.correctance = nn.Conv2d(in_channels, out_channels, kernel_size=(1, 1), bias=False, stride=(1, 1))
 
         self.double_conv = nn.Sequential(
 
-            nn.Conv2d(in_channels, out_channels, kernel_size=(3, 3), bias=False, padding=1),
+            nn.Conv2d(in_channels, out_channels, kernel_size=(9, 9), bias=False, padding=4, padding_mode='reflect'),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
 
-            nn.Conv2d(out_channels, out_channels, kernel_size=(3, 3), bias=False, padding=1)
+            nn.Conv2d(out_channels, out_channels, kernel_size=(9, 9), bias=False, padding=4, padding_mode='reflect')
 
         )
 
@@ -40,8 +40,8 @@ class DoubleConv(nn.Module):
         if self.in_channels != self.out_channels:
             save = self.correctance(save)
 
-        save = tf.resize(save, size=x.shape[2:])
+        save = tf.center_crop(save, output_size=x.shape[2:])
 
-        torch.add(x, save)
+        x = torch.add(x, save)
 
         return self.relu(x)

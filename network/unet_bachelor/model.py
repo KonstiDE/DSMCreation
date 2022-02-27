@@ -12,7 +12,7 @@ class UNET_BACHELOR(nn.Module):
     def __init__(self, in_channels=3, out_channels=1):
         super(UNET_BACHELOR, self).__init__()
 
-        features = [in_channels, 64, 128, 256, 512, 1024]
+        features = [in_channels, 64, 128, 256, 512]
 
         self.down_convs = nn.ModuleList()
         self.up_convs = nn.ModuleList()
@@ -52,7 +52,7 @@ class UNET_BACHELOR(nn.Module):
         for i in range(len(self.up_convs)):
             x = self.up_trans[i](x)
 
-            skip_connections[i] = tf.resize(skip_connections[i], size=x.shape[2:])
+            skip_connections[i] = tf.center_crop(skip_connections[i], output_size=x.shape[2:])
             go = torch.cat((x, skip_connections[i]), dim=1)
             x = self.up_convs[i](go)
 
@@ -64,5 +64,7 @@ if __name__ == '__main__':
 
     y = torch.randn(1, 4, 1000, 1000)
 
-    out = unet(y)
-    print(out.shape)
+    conv = nn.Conv2d(4, 4, kernel_size=(11, 11), stride=(1, 1), padding=5, padding_mode='reflect', bias=False)
+    outnow = conv(y)
+
+    print(outnow.shape)

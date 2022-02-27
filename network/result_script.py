@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import torch
 from PIL import Image
 
-from network.dataset_builder import (
+from network.dataset_provider import (
     get_dataset
 )
 from network.unet_bachelor.model import UNET_BACHELOR
@@ -31,9 +31,6 @@ def test(amount, model_path, test_data_path):
 
         data = data.unsqueeze(0).cpu()
         prediction = unet(data)
-
-        print(prediction.shape)
-        print(target.shape)
 
         target = target.unsqueeze(0).unsqueeze(0)
 
@@ -65,7 +62,7 @@ def test(amount, model_path, test_data_path):
 
 if __name__ == '__main__':
     test(
-        10,
+        30,
         "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_BACHELOR/model.pt",
         "/home/fkt48uj/nrw/dataset/data/test/"
     )

@@ -16,11 +16,20 @@ train_transform = A.Compose(
 
 class NrwDataSet(Dataset):
     def __init__(self, npz_dir, augmented=False):
+        training_outlier_file = open("/home/fkt48uj/nrw/network/training_outlier_gte19.txt")
+        training_outliers = [os.path.basename(line.rstrip()) for line in training_outlier_file]
+
+        validation_outlier_file = open("/home/fkt48uj/nrw/network/validation_outlier_gte19.txt")
+        validation_outliers = [os.path.basename(line.rstrip()) for line in validation_outlier_file]
 
         self.dataset = []
         for file in os.listdir(npz_dir):
-            self.dataset.append(os.path.join(npz_dir, file))
-            self.augmented = augmented
+            if not training_outliers.__contains__(file) and not validation_outliers.__contains__(file):
+                self.dataset.append(os.path.join(npz_dir, file))
+                self.augmented = augmented
+
+        training_outlier_file.close()
+        validation_outlier_file.close()
 
     def __len__(self):
         return len(self.dataset)

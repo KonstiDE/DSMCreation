@@ -37,20 +37,15 @@ def view_data_frame(path):
         plt.show()
 
         plt.imshow(dom, cmap='viridis')
-        plt.title("Sentinel")
+        plt.title("nDSM")
+        plt.colorbar()
         plt.show()
-
-        red = red / np.max(red)
-        green = green / np.max(green)
-        blue = blue / np.max(blue)
-
-        composite = np.stack((red, green, blue))
-        show(composite)
 
     else:
         print("{} is not a valid data frame".format(path))
 
 
 if __name__ == '__main__':
-    view_data_frame("C:/Users/Caipi/PycharmProjects/NRW/dataset/data/train/ndom50_32342_5729_1_nw_2018"
-                    "~SENTINEL2X_20180515-000000-000_L3A_T32ULC_C_V1-2.npz")
+    path = "/home/fkt48uj/nrw/dataset/data/train/"
+
+    view_data_frame(path + "ndom50_32414_5682_1_nw_2018_index_0~SENTINEL2X_20180415-000000-000_L3A_T32UMB_C_V1-2.npz")
