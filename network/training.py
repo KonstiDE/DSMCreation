@@ -34,7 +34,7 @@ from pytorchtools import (
     EarlyStopping
 )
 
-from unet_bachelor.model import UNET_BACHELOR
+from unet_fanned.model import UNET_FANNED
 
 
 def train(epoch, loader, loss_fn, optimizer, scaler, model):
@@ -111,7 +111,7 @@ def valid(epoch, loader, loss_fn, model):
 
 def run(num_epochs, lr):
 
-    model = UNET_BACHELOR(in_channels=4, out_channels=1).to(device)
+    model = UNET_FANNED(in_channels=4, out_channels=1).to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr)
     loss_fn = nn.L1Loss()
     scaler = torch.cuda.amp.GradScaler()
@@ -133,7 +133,7 @@ def run(num_epochs, lr):
         "results",
         str(loss_fn.__class__.__name__),
         str(optimizer.__class__.__name__),
-        str(UNET_BACHELOR.__qualname__)
+        str(UNET_FANNED.__qualname__)
     )
 
     # training_outlier_file = open(os.path.join(path, "training_outlier_detection.txt"), mode="a+")
