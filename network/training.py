@@ -1,4 +1,8 @@
+import math
 import os
+
+import pytorch_msssim
+import pytorch_ssim
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -10,9 +14,11 @@ import statistics as s
 import numpy as np
 import sys
 import torchvision.transforms.functional as tf
+
 sys.path.append(os.getcwd())
 
 import shutup
+
 shutup.please()
 
 from dataset_provider import (
@@ -34,7 +40,11 @@ from pytorchtools import (
     EarlyStopping
 )
 
+from torch.autograd import Variable
+
 from unet_fanned.model import UNET_FANNED
+
+from pytorch_msssim.ssim import SSIM
 
 
 def train(epoch, loader, loss_fn, optimizer, scaler, model):
@@ -44,14 +54,17 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model):
     loop = prog(loader)
 
     running_loss = []
-    #running_mae = []
-    #running_mse = []
+    running_mae = []
+    running_mse = []
 
     for batch_index, (data, target, dataframepath) in enumerate(loop):
         optimizer.zero_grad(set_to_none=True)
 
-        data = model(data.to(device))
+        data = data.to(device)
+        data = model(data, data)
+
         target = target.unsqueeze(1).to(device)
+        target = tf.resize(target, size=data.shape[2:])
 
         with torch.cuda.amp.autocast():
             loss = loss_fn(data, target)
@@ -62,18 +75,18 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model):
 
         loss_value = loss.item()
 
-        # outlier_file.write(dataframepath[0] + " " + str(loss_value) + "\n")
+        #outlier_file.write(dataframepath[0] + " " + str(loss_value) + "\n")
 
-        # data = data.view(-1).detach().cpu()
-        # target = target.view(-1).detach().cpu()
+        data = data.view(-1).detach().cpu()
+        target = target.view(-1).detach().cpu()
 
-        # running_mae.append(skl.mean_absolute_error(target, data))
-        # running_mse.append(skl.mean_squared_error(target, data))
+        running_mae.append(loss_value)
+        running_mse.append(skl.mean_squared_error(target, data))
 
         loop.set_postfix(info="Epoch {}, train, loss={:.5f}".format(epoch, loss_value))
         running_loss.append(loss_value)
 
-    return s.mean(running_loss)#, s.mean(running_mae), s.mean(running_mse)
+    return s.mean(running_loss), s.mean(running_mae), s.mean(running_mse)
 
 
 def valid(epoch, loader, loss_fn, model):
@@ -82,35 +95,36 @@ def valid(epoch, loader, loss_fn, model):
     loop = prog(loader)
 
     running_loss = []
-    # running_mae = []
-    # running_mse = []
+    running_mae = []
+    running_mse = []
 
     for batch_index, (data, target, dataframepath) in enumerate(loop):
+        data = data.to(device)
+        data = model(data, data)
 
-        data = model(data.to(device))
         target = target.unsqueeze(1).to(device)
+        target = tf.resize(target, size=data.shape[2:])
 
         with torch.no_grad():
             loss = loss_fn(data, target)
 
         loss_value = loss.item()
 
-        # outlier_file.write(dataframepath[0] + " " + str(loss_value) + "\n")
+        #outlier_file.write(dataframepath[0] + " " + str(loss_value) + "\n")
 
-        # data = data.view(-1).detach().cpu()
-        # target = target.view(-1).detach().cpu()
+        data = data.view(-1).detach().cpu()
+        target = target.view(-1).detach().cpu()
 
-        # running_mae.append(skl.mean_absolute_error(target, data))
-        # running_mse.append(skl.mean_squared_error(target, data))
+        running_mae.append(loss_value)
+        running_mse.append(skl.mean_squared_error(target, data))
 
         loop.set_postfix(info="Epoch {}, valid, loss={:.5f}".format(epoch, loss_value))
         running_loss.append(loss_value)
 
-    return s.mean(running_loss)#, s.mean(running_mae), s.mean(running_mse)
+    return s.mean(running_loss), s.mean(running_mae), s.mean(running_mse)
 
 
-def run(num_epochs, lr):
-
+def run(num_epochs, lr, epoch_to_start_from):
     model = UNET_FANNED(in_channels=4, out_channels=1).to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr)
     loss_fn = nn.L1Loss()
@@ -129,21 +143,21 @@ def run(num_epochs, lr):
     overall_training_mse = []
     overall_validation_mse = []
 
-    path = "{}_{}_{}_{}/".format(
+    path = "{}_{}_{}_{}_nearn_500_512/".format(
         "results",
         str(loss_fn.__class__.__name__),
         str(optimizer.__class__.__name__),
         str(UNET_FANNED.__qualname__)
     )
 
-    # training_outlier_file = open(os.path.join(path, "training_outlier_detection.txt"), mode="a+")
-    # validation_outlier_file = open(os.path.join(path, "validation_outlier_detection.txt"), mode="a+")
+    #training_outlier_file = open(os.path.join(path, "helper/training_outlier_detection.txt"), mode="a+")
+    #validation_outlier_file = open(os.path.join(path, "helper/validation_outlier_detection.txt"), mode="a+")
 
     if not os.path.isdir(path):
         os.mkdir(path)
 
-    if os.path.isfile(path + "model.pt"):
-        checkpoint = torch.load(path + "model.pt", map_location='cpu')
+    if os.path.isfile(path + "model_epoch" + str(epoch_to_start_from) + ".pt"):
+        checkpoint = torch.load(path + "model_epoch" + str(epoch_to_start_from) + ".pt", map_location='cpu')
         model.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         epochs_done = checkpoint['epoch']
@@ -157,12 +171,12 @@ def run(num_epochs, lr):
     else:
         model.to(device)
 
-    train_loader = get_loader(path_train, batch_size, num_workers, pin_memory)
-    validation_loader = get_loader(path_validation, batch_size, num_workers, pin_memory)
+    train_loader = get_loader(path_train, batch_size, num_workers, pin_memory, amount=0)
+    validation_loader = get_loader(path_validation, batch_size, num_workers, pin_memory, amount=0)
 
     for epoch in range(epochs_done + 1, num_epochs + 1):
-        training_loss, training_mae, training_mse = train(epoch, train_loader, loss_fn, optimizer, scaler, model), 1, 1
-        validation_loss, validation_mae, validation_mse = valid(epoch, validation_loader, loss_fn, model), 1, 1
+        training_loss, training_mae, training_mse = train(epoch, train_loader, loss_fn, optimizer, scaler, model)
+        validation_loss, validation_mae, validation_mse = valid(epoch, validation_loader, loss_fn, model)
 
         overall_training_loss.append(training_loss)
         overall_validation_loss.append(validation_loss)
@@ -175,10 +189,6 @@ def run(num_epochs, lr):
 
         early_stopping(validation_loss, model)
 
-        if early_stopping.early_stop:
-            print("Early stopping")
-            break
-
         torch.save({
             'epoch': epoch,
             'model_state_dict': model.cpu().state_dict(),
@@ -190,7 +200,11 @@ def run(num_epochs, lr):
             'validation_maes': overall_validation_mae,
             'validation_mses': overall_validation_mse,
             'early_stopping': early_stopping
-        }, path + "model.pt")
+        }, path + "model_epoch" + str(epoch) + ".pt")
+
+        if early_stopping.early_stop:
+            print("Early stopping")
+            break
 
         model.to(device)
 
@@ -203,7 +217,7 @@ def run(num_epochs, lr):
             overall_validation_mse
         ])
 
-        savetxt(path + "metrics.csv", metrics, delimiter=',', header="tloss,vloss,tmae,tmse,vmae,vmse", fmt='%s')
+        savetxt(path + "metrics.csv", metrics, delimiter=',', header="tloss,vloss,tmae,tmse,tnan,vmae,vmse", fmt='%s')
 
     plt.figure()
     plt.plot(overall_training_loss, 'b', label="Loss training")
@@ -224,4 +238,4 @@ def run(num_epochs, lr):
 
 
 if __name__ == '__main__':
-    run(num_epochs=10, lr=1e-04)
+    run(num_epochs=100, lr=3e-04, epoch_to_start_from=0)

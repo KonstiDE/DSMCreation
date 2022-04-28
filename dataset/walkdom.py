@@ -27,10 +27,7 @@ def walkDom():
 
 
 def file_already_transformed(current_files, name):
-    if ("cut_transformed_" + name.removesuffix(".tif") + "_0.tif" in current_files and
-            "cut_transformed_" + name.removesuffix(".tif") + "_1.tif" in current_files and
-            "cut_transformed_" + name.removesuffix(".tif") + "_2.tif" in current_files and
-            "cut_transformed_" + name.removesuffix(".tif") + "_3.tif" in current_files) or \
+    if ("cut_transformed_" + name.replace(".tif", "") + "_" in current_files) or \
             "cut_transformed_" in name:
         return True
 

@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torchvision.transforms.functional as tf
 
-from network.unet_bachelor.layers import (
+from network.unet_fanned.layers import (
     DoubleConv,
     UpConv
 )

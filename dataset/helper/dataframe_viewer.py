@@ -46,6 +46,6 @@ def view_data_frame(path):
 
 
 if __name__ == '__main__':
-    path = "/home/fkt48uj/nrw/dataset/data/train/"
+    path = "/home/fkt48uj/nrw/dataset/data/validation/"
 
-    view_data_frame(path + "ndom50_32414_5682_1_nw_2018_index_0~SENTINEL2X_20180415-000000-000_L3A_T32UMB_C_V1-2.npz")
+    view_data_frame(path + "ndom50_32323_5659_1_nw_2019_7~SENTINEL2X_20190215-000000-000_L3A_T32ULB_C_V1-2.npz")

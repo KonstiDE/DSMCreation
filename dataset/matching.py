@@ -90,17 +90,19 @@ def createMatching():
 
                                                 data_frame = build_data_frame(sentinel_option, tile)
 
-                                                np.savez_compressed(os.path.join(output_path, filename + "~" + directory + ".npz"), *data_frame)
+                                                np.savez_compressed(os.path.join(output_path, filename + "_" + str(c) + "~" + directory + ".npz"), *data_frame)
                                                 print("Passed positional and time matching for " + filename + " with index " + str(c) + ". Trying to build up " + filename + "~" + directory + ".npz now")
 
                                                 data_set_counter += 1
                                                 found_sentinel_match = True
                                                 break
-                                    if found_sentinel_match:
-                                        break
-                                    else:
-                                        print(filename + " passed the positional matching but not the time matching.")
-                                        time_counter += 1
+
+                                        if found_sentinel_match:
+                                            break
+
+                                if not found_sentinel_match:
+                                    print(filename + " passed the positional matching but not the time matching.")
+                                    time_counter += 1
                             else:
                                 print("No positional matching found for " + filename)
                         else:

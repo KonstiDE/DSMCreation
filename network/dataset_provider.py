@@ -2,31 +2,26 @@ import os
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
 import torch
-import albumentations as A
-
-
-train_transform = A.Compose(
-    [
-        A.HorizontalFlip(p=0.3),
-        A.VerticalFlip(p=0.3),
-        A.RandomRotate90(p=0.5)
-    ]
-)
 
 
 class NrwDataSet(Dataset):
-    def __init__(self, npz_dir, augmented=False):
-        training_outlier_file = open("/home/fkt48uj/nrw/network/training_outlier_gte19.txt")
+    def __init__(self, npz_dir, amount):
+        training_outlier_file = open("/home/fkt48uj/nrw/network/training_outliers.txt")
         training_outliers = [os.path.basename(line.rstrip()) for line in training_outlier_file]
 
-        validation_outlier_file = open("/home/fkt48uj/nrw/network/validation_outlier_gte19.txt")
+        validation_outlier_file = open("/home/fkt48uj/nrw/network/validation_outliers.txt")
         validation_outliers = [os.path.basename(line.rstrip()) for line in validation_outlier_file]
 
+        c = 0
         self.dataset = []
         for file in os.listdir(npz_dir):
             if not training_outliers.__contains__(file) and not validation_outliers.__contains__(file):
                 self.dataset.append(os.path.join(npz_dir, file))
-                self.augmented = augmented
+
+                if amount > 0:
+                    c += 1
+                    if c >= amount:
+                        break
 
         training_outlier_file.close()
         validation_outlier_file.close()
@@ -52,8 +47,8 @@ class NrwDataSet(Dataset):
         return sentinel, dsm, dataframepath
 
 
-def get_loader(npz_dir, batch_size, num_workers=2, pin_memory=True, augmented=False, shuffle=True):
-    train_ds = NrwDataSet(npz_dir, augmented)
+def get_loader(npz_dir, batch_size, num_workers=2, pin_memory=True, shuffle=True, amount=0):
+    train_ds = NrwDataSet(npz_dir, amount)
 
     train_loader = DataLoader(
         train_ds,
@@ -66,4 +61,4 @@ def get_loader(npz_dir, batch_size, num_workers=2, pin_memory=True, augmented=Fa
 
 
 def get_dataset(npz_dir):
-    return NrwDataSet(npz_dir)
+    return NrwDataSet(npz_dir, amount=0)

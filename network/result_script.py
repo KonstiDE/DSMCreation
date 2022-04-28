@@ -7,13 +7,13 @@ from PIL import Image
 from network.dataset_provider import (
     get_dataset
 )
-from network.unet_bachelor.model import UNET_BACHELOR
+from network.unet_fanned.model import UNET_FANNED
 
 import torchvision.transforms.functional as tf
 
 
 def test(amount, model_path, test_data_path):
-    unet = UNET_BACHELOR(in_channels=4, out_channels=1).cpu()
+    unet = UNET_FANNED(in_channels=4, out_channels=1).cpu()
     unet.load_state_dict(torch.load(model_path)['model_state_dict'])
 
     unet.eval()
@@ -30,11 +30,9 @@ def test(amount, model_path, test_data_path):
             break
 
         data = data.unsqueeze(0).cpu()
-        prediction = unet(data)
+        prediction = unet(data, data)
 
         target = target.unsqueeze(0).unsqueeze(0)
-
-        target = tf.resize(target, size=prediction.shape[2:])
 
         prediction = prediction.squeeze(0).squeeze(0).detach().cpu()
         target = target.squeeze(0).squeeze(0).detach().cpu()
@@ -63,6 +61,6 @@ def test(amount, model_path, test_data_path):
 if __name__ == '__main__':
     test(
         30,
-        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_BACHELOR/model.pt",
+        "/home/fkt48uj/nrw/results_L1SSIM_Loss_Adam_UNET_FANNED_nearn_500_512/model_epoch4.pt",
         "/home/fkt48uj/nrw/dataset/data/test/"
     )
