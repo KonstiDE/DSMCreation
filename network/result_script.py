@@ -3,17 +3,19 @@ import os.path
 import matplotlib.pyplot as plt
 import torch
 from PIL import Image
+import sklearn.metrics as skl
+from matplotlib import rcParams
 
-from network.dataset_provider import (
+from dataset_provider import (
     get_dataset
 )
-from network.unet_fanned.model import UNET_FANNED
+from unet_fanned.model import UNET_FANNED
 
 import torchvision.transforms.functional as tf
 
 
 def test(amount, model_path, test_data_path):
-    unet = UNET_FANNED(in_channels=4, out_channels=1).cpu()
+    unet = UNET_FANNED(in_channels=4, out_channels=1).to("cuda:0")
     unet.load_state_dict(torch.load(model_path)['model_state_dict'])
 
     unet.eval()
@@ -25,42 +27,60 @@ def test(amount, model_path, test_data_path):
     if not os.path.exists("results"):
         os.mkdir("results")
 
+    walking_mae = 0
+
     for (data, target, src_path) in loader:
         if 0 < amount <= c:
             break
 
-        data = data.unsqueeze(0).cpu()
+        data = data.unsqueeze(0).to("cuda:0")
         prediction = unet(data, data)
 
         target = target.unsqueeze(0).unsqueeze(0)
+        target = tf.resize(target, size=prediction.shape[2:])
 
-        prediction = prediction.squeeze(0).squeeze(0).detach().cpu()
         target = target.squeeze(0).squeeze(0).detach().cpu()
+        prediction = prediction.squeeze(0).squeeze(0).detach().cpu()
 
-        # mae = skl.mean_absolute_error(target, prediction)
-        # mse = skl.mean_squared_error(target, prediction)
+        mae = skl.mean_absolute_error(target, prediction)
 
-        # print(mae)
-        # print(mse)
+        data = data.squeeze(0)[0].cpu()
 
-        fig = plt.figure()
-        plt.imshow(target, cmap="viridis")
-        plt.colorbar()
-        plt.savefig("results/" + os.path.basename(src_path) + "_target.png")
-        plt.close(fig)
+        fig, axs = plt.subplots(1, 3)
 
-        fig = plt.figure()
-        plt.imshow(prediction, cmap="viridis")
-        plt.colorbar()
-        plt.savefig("results/" + os.path.basename(src_path) + "_pred.png")
+        im = axs[0].imshow(data, cmap="Reds_r")
+        axs[0].set_xticklabels([])
+        axs[0].set_yticklabels([])
+        #plt.colorbar(im, ax=axs[0])
+
+        im = axs[1].imshow(prediction, cmap="viridis")
+        axs[1].set_xticklabels([])
+        axs[1].set_yticklabels([])
+        #plt.colorbar(im, ax=axs[1])
+
+        im = axs[2].imshow(target, cmap="viridis")
+        axs[2].set_xticklabels([])
+        axs[2].set_yticklabels([])
+        #plt.colorbar(im, ax=axs[2])
+
+        fig.suptitle("MAE: " + str(mae))
+
+        plt.savefig("results/" + os.path.basename(src_path) + ".png")
         plt.close(fig)
 
         c += 1
+        walking_mae += mae
+
+    print(walking_mae / c)
+
+    file = open("results/mae.txt", "w+")
+    file.write(str(walking_mae / c))
+    file.close()
 
 
 if __name__ == '__main__':
     test(
-        30,
-        "/home/fkt48uj/nrw/results_L1SSIM_Loss_Adam_UNET_FANNED_nearn_500_512/model_epoch4.pt",
+        0,
+        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_nearn_500_512_attention/model_epoch7.pt",
         "/home/fkt48uj/nrw/dataset/data/test/"
     )

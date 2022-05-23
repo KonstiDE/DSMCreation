@@ -143,7 +143,7 @@ def run(num_epochs, lr, epoch_to_start_from):
     overall_training_mse = []
     overall_validation_mse = []
 
-    path = "{}_{}_{}_{}_nearn_500_512/".format(
+    path = "{}_{}_{}_{}_nearn_500_512_attention/".format(
         "results",
         str(loss_fn.__class__.__name__),
         str(optimizer.__class__.__name__),
@@ -156,7 +156,7 @@ def run(num_epochs, lr, epoch_to_start_from):
     if not os.path.isdir(path):
         os.mkdir(path)
 
-    if os.path.isfile(path + "model_epoch" + str(epoch_to_start_from) + ".pt"):
+    if os.path.isfile(path + "model_epoch" + str(epoch_to_start_from) + ".pt") and epoch_to_start_from > 0:
         checkpoint = torch.load(path + "model_epoch" + str(epoch_to_start_from) + ".pt", map_location='cpu')
         model.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
@@ -169,7 +169,10 @@ def run(num_epochs, lr, epoch_to_start_from):
         overall_validation_mse = checkpoint['validation_mses']
         early_stopping = checkpoint['early_stopping']
     else:
-        model.to(device)
+        if epoch_to_start_from == 0:
+            model.to(device)
+        else:
+            raise Exception("No model_epoch" + str(epoch_to_start_from) + ".pt found")
 
     train_loader = get_loader(path_train, batch_size, num_workers, pin_memory, amount=0)
     validation_loader = get_loader(path_validation, batch_size, num_workers, pin_memory, amount=0)

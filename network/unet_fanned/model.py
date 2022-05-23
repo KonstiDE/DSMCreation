@@ -3,10 +3,11 @@ import torch.nn as nn
 
 import torchvision.transforms.functional as tf
 
-from network.unet_fanned.layers import (
+from unet_fanned.layers import (
     DoubleConv_Small,
     DoubleConv_Big,
-    UpConv
+    UpConv,
+    UnfanningAttention
 )
 
 
@@ -24,14 +25,15 @@ class UNET_FANNED(nn.Module):
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
 
         self.final = nn.Conv2d(features[2], out_channels, kernel_size=(1, 1))
-        self.bottleneck_unfanning = nn.Conv2d(features[-1] * 2, features[-1], kernel_size=(5, 5), bias=False, padding=2)
+        self.bottleneck_unfanning = UnfanningAttention(features[-1], features[-1])
 
         for i in range(len(features) - 2):
             self.down_convs_small.append(DoubleConv_Small(features[i], features[i + 1]))
             self.down_convs_big.append(DoubleConv_Big(features[i], features[i + 1]))
 
         for i in range(len(features) - 2):
-            self.unfanning.append(nn.Conv2d(features[i + 2], features[i + 1], kernel_size=(5, 5), bias=False, padding=2))
+            # self.unfanning.append(nn.Conv2d(features[i + 2], features[i + 1], kernel_size=(5, 5), bias=False, padding=2))
+            self.unfanning.append(UnfanningAttention(features[i + 1], features[i + 1]))
 
         self.unfanning = self.unfanning[::-1]
 
@@ -65,8 +67,7 @@ class UNET_FANNED(nn.Module):
         x = self.bottleneck_small(x)
         y = self.bottleneck_big(y)
 
-        bottleneck_unfanned = torch.cat((x, y), dim=1)
-        bottleneck_unfanned = self.bottleneck_unfanning(bottleneck_unfanned)
+        bottleneck_unfanned = self.bottleneck_unfanning(x, y)
 
         skip_connections_small = skip_connections_small[::-1]
         skip_connections_big = skip_connections_big[::-1]
@@ -74,8 +75,7 @@ class UNET_FANNED(nn.Module):
         skip_connections_unfanned = []
 
         for i in range(len(skip_connections_small)):
-            z_skip_connection = torch.concat((skip_connections_small[i], skip_connections_big[i]), dim=1)
-            skip_connections_unfanned.append(self.unfanning[i](z_skip_connection))
+            skip_connections_unfanned.append(self.unfanning[i](skip_connections_small[i], skip_connections_big[i]))
 
         for i in range(len(self.up_convs)):
             bottleneck_unfanned = self.up_trans[i](bottleneck_unfanned)
@@ -91,7 +91,7 @@ class UNET_FANNED(nn.Module):
 if __name__ == '__main__':
     unet = UNET_FANNED(in_channels=4, out_channels=1)
 
-    a = torch.randn(2, 4, 500, 500)
+    a = torch.randn(1, 4, 500, 500)
     out = unet(a, a)
 
     print(out.shape)
