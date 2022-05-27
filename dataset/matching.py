@@ -42,7 +42,7 @@ def createMatching():
                 for c in range(int(m * m)):
                     filename, date_of_measurement = line[0], line[2]
 
-                    if not already_created(filename, current_output_patch):
+                    if not already_created(filename, c + 1, current_output_patch):
 
                         tile = dom_path + "cut_transformed_" + filename + "_" + str(c) + ".tif"
                         c += 1
@@ -91,7 +91,7 @@ def createMatching():
                                                 data_frame = build_data_frame(sentinel_option, tile)
 
                                                 np.savez_compressed(os.path.join(output_path, filename + "_" + str(c) + "~" + directory + ".npz"), *data_frame)
-                                                print("Passed positional and time matching for " + filename + " with index " + str(c) + ". Trying to build up " + filename + "~" + directory + ".npz now")
+                                                print("Passed positional and time matching for " + filename + "_" + str(c) + " with index " + str(c) + ". Trying to build up " + filename + "_" + str(c) + "~" + directory + ".npz now")
 
                                                 data_set_counter += 1
                                                 found_sentinel_match = True
@@ -104,19 +104,19 @@ def createMatching():
                                     print(filename + " passed the positional matching but not the time matching.")
                                     time_counter += 1
                             else:
-                                print("No positional matching found for " + filename)
+                                print("No positional matching found for " + filename + "_" + str(c))
                         else:
                             print("Tile " + filename + " not downloaded or not in " + dom_path + " or not transformed!")
                     else:
-                        print("Dataframe for " + filename + " already exists")
+                        print("Dataframe for " + filename + "_" + str(c) + " already exists")
 
     print("Created " + str(data_set_counter) + " data_sets")
     print("Thereby, matched " + str(time_counter) + " position_wise, but not time wise")
 
 
-def already_created(filename, output_patch):
+def already_created(filename, c, output_patch):
     for f in output_patch:
-        if filename in f and ".npz" in f:
+        if filename + "_" + str(c) in f and ".npz" in f:
             return True
     return False
 
