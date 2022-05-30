@@ -42,9 +42,13 @@ def test(amount, model_path, test_data_path):
         target = target.squeeze(0).squeeze(0).detach().cpu()
         prediction = prediction.squeeze(0).squeeze(0).detach().cpu()
 
+        target = tf.center_crop(target, output_size=[500, 500])
+        prediction = tf.center_crop(prediction, output_size=[500, 500])
+
         mae = skl.mean_absolute_error(target, prediction)
 
         data = data.squeeze(0)[0].cpu()
+        data = tf.center_crop(data, output_size=[500, 500])
 
         fig, axs = plt.subplots(1, 3)
 

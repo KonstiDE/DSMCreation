@@ -75,28 +75,17 @@ class DoubleConv_Big(nn.Module):
         return self.relu(x)
 
 
-class UnfanningAttention(nn.Module):
+class ConvUnfanning(nn.Module):
     def __init__(self, in_channels, out_channels):
-        super(UnfanningAttention, self).__init__()
+        super(ConvUnfanning, self).__init__()
 
-        self.in_channels = in_channels
-        self.out_channels = out_channels
-
-        self.breakdown = nn.Conv2d(in_channels, 1, kernel_size=(1, 1))
+        self.unfanning = nn.Conv2d(in_channels, out_channels, kernel_size=(5, 5), padding=(2, 2), padding_mode='reflect')
         self.batchnorm = nn.BatchNorm2d(out_channels)
         self.relu = nn.ReLU(inplace=True)
-        self.sigmoid = nn.Sigmoid()
-        self.upsample = nn.ConvTranspose2d(1, out_channels, kernel_size=(3, 3), padding=(1, 1), padding_mode='zeros')
 
-    def forward(self, small, big):
-        save = torch.add(small, big)
+    def forward(self, x, y):
+        z = torch.add(x, y)
+        z = self.unfanning(z)
+        z = self.batchnorm(z)
 
-        skip_con = self.relu(save)
-
-        skip_con = self.breakdown(skip_con)
-        skip_con = self.sigmoid(skip_con)
-        skip_con = self.upsample(skip_con)
-
-        skip_con = torch.multiply(skip_con, save)
-
-        return self.batchnorm(skip_con)
+        return self.relu(z)

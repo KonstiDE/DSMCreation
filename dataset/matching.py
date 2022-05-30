@@ -108,7 +108,7 @@ def createMatching():
                         else:
                             print("Tile " + filename + " not downloaded or not in " + dom_path + " or not transformed!")
                     else:
-                        print("Dataframe for " + filename + "_" + str(c) + " already exists")
+                        print("Dataframe for " + filename + "_" + str(c + 1) + " already exists")
 
     print("Created " + str(data_set_counter) + " data_sets")
     print("Thereby, matched " + str(time_counter) + " position_wise, but not time wise")

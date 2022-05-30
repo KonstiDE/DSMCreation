@@ -60,6 +60,9 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model):
     for batch_index, (data, target, dataframepath) in enumerate(loop):
         optimizer.zero_grad(set_to_none=True)
 
+        data[data < 0] = 0
+        target[target < 0] = 0
+
         data = data.to(device)
         data = model(data, data)
 
@@ -99,6 +102,9 @@ def valid(epoch, loader, loss_fn, model):
     running_mse = []
 
     for batch_index, (data, target, dataframepath) in enumerate(loop):
+        data[data < 0] = 0
+        target[target < 0] = 0
+
         data = data.to(device)
         data = model(data, data)
 
@@ -143,7 +149,7 @@ def run(num_epochs, lr, epoch_to_start_from):
     overall_training_mse = []
     overall_validation_mse = []
 
-    path = "{}_{}_{}_{}_nearn_500_512_attention/".format(
+    path = "{}_{}_{}_{}_nearn_500_1024_potency_attention/".format(
         "results",
         str(loss_fn.__class__.__name__),
         str(optimizer.__class__.__name__),

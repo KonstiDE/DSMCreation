@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 
 
 def show(path):
-    new_file = open("test_outliers.txt", "a+")
-    file = open("test_outlier_detection.txt", "r")
+    new_file = open("outliers.txt", "a+")
+    file = open("../network/helper/outliers_detection.txt", "r")
 
     index = 0
     lines = new_file.readlines()
@@ -47,4 +47,4 @@ def show(path):
 
 
 if __name__ == '__main__':
-    show("/home/fkt48uj/nrw/dataset/data/test/")
+    show("/home/fkt48uj/nrw/dataset/output/")
