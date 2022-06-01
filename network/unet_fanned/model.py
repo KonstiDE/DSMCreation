@@ -15,7 +15,7 @@ class UNET_FANNED(nn.Module):
     def __init__(self, in_channels=4, out_channels=1):
         super(UNET_FANNED, self).__init__()
 
-        features = [in_channels, 64, 128, 256, 512]
+        features = [in_channels, 64, 128, 256, 512, 1024]
 
         self.down_convs_small = nn.ModuleList()
         self.down_convs_big = nn.ModuleList()
@@ -80,7 +80,7 @@ class UNET_FANNED(nn.Module):
         for i in range(len(self.up_convs)):
             bottleneck_unfanned = self.up_trans[i](bottleneck_unfanned)
 
-            skip_connections_unfanned[i] = tf.resize(skip_connections_unfanned[i], size=bottleneck_unfanned.shape[2:])
+            # skip_connections_unfanned[i] = tf.resize(skip_connections_unfanned[i], size=bottleneck_unfanned.shape[2:])
 
             bottleneck_unfanned = torch.cat((bottleneck_unfanned, skip_connections_unfanned[i]), dim=1)
             bottleneck_unfanned = self.up_convs[i](bottleneck_unfanned)
