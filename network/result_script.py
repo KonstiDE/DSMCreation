@@ -80,7 +80,7 @@ def test(amount, model_path, test_data_path):
 
 if __name__ == '__main__':
     test(
-        0,
-        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_nearn_500_512_attention/model_epoch7.pt",
+        30,
+        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_nearn_500_1024_potency_attention/model_epoch1.pt",
         "/home/fkt48uj/nrw/dataset/data/test/"
     )

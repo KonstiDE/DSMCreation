@@ -15,7 +15,7 @@ class UNET_FANNED(nn.Module):
     def __init__(self, in_channels=4, out_channels=1):
         super(UNET_FANNED, self).__init__()
 
-        features = [in_channels, 64, 128, 256, 512]
+        features = [in_channels, 64, 128, 256, 512, 1024]
 
         self.down_convs_small = nn.ModuleList()
         self.down_convs_big = nn.ModuleList()
