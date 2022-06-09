@@ -8,7 +8,7 @@ To setup the system, you need to download to datasets. The North Rhine-Westphali
   your structure could look like:
   \
   \
-  C:/Users/Administrator/project_data/\
+  ~/project_name/\
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|- ndsm (empty dir cearted by you)\
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|- ndom50_32280_5652_1_nw_2019.tif\
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|- ...\
@@ -30,7 +30,7 @@ The matching step later on needs to match the position of each nDsm tile to a se
   in every MB, MC, LB, LC subfolder called `positiontest`. We place a random sentinel tif of the current subfoler (LB,LC,MB,MC) in it (copied) to always be able to compare the nDSM tile position to the sentinel subfolder one without accessing file deeper in the sentinel structure.
   \
   \
-  C:/Users/Administrator/project_data/\
+  ~/project_name/\
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|- sentinel\
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|- LB\
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|- positiontest\
