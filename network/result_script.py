@@ -2,11 +2,9 @@ import os.path
 
 import matplotlib.pyplot as plt
 import torch
-from PIL import Image
 import sklearn.metrics as skl
-from matplotlib import rcParams
 
-from dataset_provider import (
+from network.provider.dataset_provider import (
     get_dataset
 )
 from unet_fanned.model import UNET_FANNED

@@ -1,8 +1,5 @@
-import math
 import os
 
-import pytorch_msssim
-import pytorch_ssim
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -21,7 +18,7 @@ import shutup
 
 shutup.please()
 
-from dataset_provider import (
+from network.provider.dataset_provider import (
     get_loader
 )
 
@@ -36,15 +33,11 @@ from network.helper.network_helper import (
     pin_memory
 )
 
-from pytorchtools import (
+from network.provider.pytorchtools import (
     EarlyStopping
 )
 
-from torch.autograd import Variable
-
 from unet_fanned.model import UNET_FANNED
-
-from pytorch_msssim.ssim import SSIM
 
 
 def train(epoch, loader, loss_fn, optimizer, scaler, model):
