@@ -6,21 +6,13 @@ import torch
 
 class NrwDataSet(Dataset):
     def __init__(self, npz_dir, amount):
-        training_outlier_file = open("/home/fkt48uj/nrw/network/training_outliers.txt")
-        training_outliers = [os.path.basename(line.rstrip()) for line in training_outlier_file]
-
-        validation_outlier_file = open("/home/fkt48uj/nrw/network/validation_outliers.txt")
-        validation_outliers = [os.path.basename(line.rstrip()) for line in validation_outlier_file]
-
-        test_outlier_file = open("/home/fkt48uj/nrw/network/test_outliers.txt")
-        test_outliers = [os.path.basename(line.rstrip()) for line in test_outlier_file]
+        outlier_file = open("/home/fkt48uj/nrw/network/outliers.TXT")
+        outliers = [os.path.basename(line.rstrip()) for line in outlier_file]
 
         c = 0
         self.dataset = []
         for file in os.listdir(npz_dir):
-            if not training_outliers.__contains__(file) and\
-                    not validation_outliers.__contains__(file) and\
-                    not test_outliers.__contains__(file):
+            if not outliers.__contains__(file):
 
                 self.dataset.append(os.path.join(npz_dir, file))
 
@@ -29,9 +21,7 @@ class NrwDataSet(Dataset):
                     if c >= amount:
                         break
 
-        test_outlier_file.close()
-        training_outlier_file.close()
-        validation_outlier_file.close()
+        outlier_file.close()
 
     def __len__(self):
         return len(self.dataset)
