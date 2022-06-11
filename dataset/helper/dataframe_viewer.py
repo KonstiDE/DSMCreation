@@ -48,4 +48,4 @@ def view_data_frame(path):
 if __name__ == '__main__':
     path = "/home/fkt48uj/nrw/dataset/data/test/"
 
-    view_data_frame(path + "ndom50_32330_5642_1_nw_2019_1~SENTINEL2X_20190615-000000-000_L3A_T32ULB_C_V1-2.npz")
+    view_data_frame(path + "ndom50_32376_5663_1_nw_2019_16~SENTINEL2X_20190415-000000-000_L3A_T32ULB_C_V1-2.npz")

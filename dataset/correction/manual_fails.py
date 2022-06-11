@@ -13,18 +13,22 @@ def show(path):
     for line in file.readlines():
         index += 1
 
-        if index > 100:
+        if index > -1:
             split = line.split(" ")
             loss_value = split[1]
 
-            if float(loss_value) > 50:
+            if float(loss_value) > 5:
                 print(index)
                 data_frame = np.load(os.path.join(path, split[0]), allow_pickle=True)
 
+                blue = data_frame["arr_" + str(0)]
+                green = data_frame["arr_" + str(1)]
+                red = data_frame["arr_" + str(2)]
+                nir = data_frame["arr_" + str(3)]
                 dom = data_frame["arr_" + str(4)]
 
                 if not lines.__contains__(split[0]):
-                    if not np.any(dom < -50):
+                    if not np.any(dom < -10):
                         if np.any(dom < -5) or np.min(dom) > 10:
                             print(np.min(dom))
 
