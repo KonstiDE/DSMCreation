@@ -24,7 +24,12 @@ def detection(paths):
                 if not np.any(dom < -10):
                     if not np.max(dom) < 0:
                         if not np.min(dom) > 10:
-                            "Do nothing"
+                            if not abs(np.min(dom) - np.max(dom)) > 400:
+                                ""
+                            else:
+                                c += 1
+                                outlier_file.write(os.path.join(path, file) + "\n")
+                                print("[" + str(c) + "] Error with " + file)
                         else:
                             c += 1
                             outlier_file.write(os.path.join(path, file) + "\n")
