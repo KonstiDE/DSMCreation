@@ -56,6 +56,9 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model):
         data = data.to(device)
         data = model(data, data)
 
+        data[data < 0]  = 0
+        target[target < 0] = 0
+
         target = target.unsqueeze(1).to(device)
         target = tf.resize(target, size=data.shape[2:])
 
@@ -94,6 +97,9 @@ def valid(epoch, loader, loss_fn, model):
     for batch_index, (data, target, dataframepath) in enumerate(loop):
         data = data.to(device)
         data = model(data, data)
+
+        data[data < 0] = 0
+        target[target < 0] = 0
 
         target = target.unsqueeze(1).to(device)
         target = tf.resize(target, size=data.shape[2:])
