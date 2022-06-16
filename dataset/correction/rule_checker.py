@@ -42,7 +42,10 @@ def check():
         index += 1
 
         if not np.all(blue == 0) and not np.all(green == 0) and not np.all(red == 0) and not np.all(nir == 0) and\
-                not(abs(np.min(dom) - np.max(dom) > 400)) and not np.all(dom < 0) and not np.any(dom < -1000):
+                not(abs(np.min(dom) - np.max(dom) > 400)) and not np.all(dom < 0) and not np.any(dom < -1000) and\
+                blue.shape[0] == blue.shape[1] and green.shape[0] == green.shape[1] and\
+                red.shape[0] == red.shape[1] and nir.shape[0] == nir.shape[1] and\
+                dom.shape[0] == dom.shape[1]:
 
             print(index)
             print(line.replace("\n", ""))

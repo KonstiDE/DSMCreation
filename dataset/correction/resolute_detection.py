@@ -26,6 +26,10 @@ def detection(paths):
 
             isOk = True
 
+            if blue.shape[0] != blue.shape[1] or green.shape[0] != green.shape[1] or\
+                    red.shape[0] != red.shape[1] or nir.shape[0] != nir.shape[1] or\
+                    dom.shape[0] != dom.shape[1]:
+                isOk = False
             if np.sum(dom < -12) / (len(dom) * len(dom)) > 0.2:
                 isOk = False
             elif np.any(dom < -50):
