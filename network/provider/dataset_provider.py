@@ -6,7 +6,7 @@ import torch
 
 class NrwDataSet(Dataset):
     def __init__(self, npz_dir, amount):
-        outlier_file = open("/home/fkt48uj/nrw/network/outliers.TXT")
+        outlier_file = open("/home/fkt48uj/nrw/outliers_checked_stayed.txt")
         outliers = [os.path.basename(line.rstrip()) for line in outlier_file]
 
         c = 0
@@ -44,7 +44,7 @@ class NrwDataSet(Dataset):
         return sentinel, dsm, dataframepath
 
 
-def get_loader(npz_dir, batch_size, num_workers=2, pin_memory=True, shuffle=True, amount=0):
+def get_loader(npz_dir, batch_size, num_workers=4, pin_memory=True, shuffle=True, amount=0):
     train_ds = NrwDataSet(npz_dir, amount)
 
     train_loader = DataLoader(
