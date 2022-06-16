@@ -3,10 +3,13 @@ import os.path
 import matplotlib.pyplot as plt
 import torch
 import sklearn.metrics as skl
+from tqdm.auto import tqdm as prog
 
-from network.provider.dataset_provider import (
+from provider.dataset_provider import (
     get_dataset
 )
+import provider.pytorchtools as pytorchtools
+
 from unet_fanned.model import UNET_FANNED
 
 import torchvision.transforms.functional as tf
@@ -27,7 +30,11 @@ def test(amount, model_path, test_data_path):
 
     walking_mae = 0
 
-    for (data, target, src_path) in loader:
+    loop = prog(loader)
+
+    outlier_file = open("results/test_outliers_in_action.txt", "w+")
+
+    for (data, target, src_path) in loop:
         if 0 < amount <= c:
             break
 
@@ -61,6 +68,8 @@ def test(amount, model_path, test_data_path):
         axs[2].set_yticklabels([])
         #plt.colorbar(im, ax=axs[2])
 
+        outlier_file.write(src_path + "\t\t" + str(mae) + "\n")
+
         fig.suptitle("MAE: " + str(mae))
 
         plt.savefig("results/" + os.path.basename(src_path) + ".png")
@@ -69,16 +78,17 @@ def test(amount, model_path, test_data_path):
         c += 1
         walking_mae += mae
 
-    print(walking_mae / c)
+        loop.set_postfix(info="MAE={:.2f}".format(walking_mae / c))
 
     file = open("results/mae.txt", "w+")
     file.write(str(walking_mae / c))
     file.close()
+    outlier_file.close()
 
 
 if __name__ == '__main__':
     test(
-        30,
-        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_nearn_500_1024_potency_attention/model_epoch1.pt",
+        0,
+        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_nearn_500_1024_potency_attention/model_epoch17.pt",
         "/home/fkt48uj/nrw/dataset/data/test/"
     )
