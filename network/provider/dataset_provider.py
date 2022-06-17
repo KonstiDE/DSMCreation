@@ -6,7 +6,7 @@ import torch
 
 class NrwDataSet(Dataset):
     def __init__(self, npz_dir, amount):
-        outlier_file = open("/home/fkt48uj/nrw/outliers_checked_stayed.txt")
+        outlier_file = open("/home/fkt48uj/nrw/network/outliers_checked_stayed.txt")
         outliers = [os.path.basename(line.rstrip()) for line in outlier_file]
 
         c = 0
