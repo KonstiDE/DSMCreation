@@ -1,38 +1,49 @@
-def getAverage(img, u, v, n):
-    """img as a square matrix of numbers"""
+import math
+import numpy as np
+
+
+def average(img):
+    shape = img.shape
     s = 0
-    for i in range(-n, n + 1):
-        for j in range(-n, n + 1):
-            s += img[u + i][v + j]
-    return float(s) / (2 * n + 1) ** 2
+    for i in range(0, shape[0]):
+        for j in range(0, shape[1]):
+            s += img[i][j]
+
+    return float(s) / img.size
 
 
-def getStandardDeviation(img, u, v, n):
+def standard_deviation(img, avg):
+    shape = img.shape
     s = 0
-    avg = getAverage(img, u, v, n)
-    for i in range(-n, n + 1):
-        for j in range(-n, n + 1):
-            s += (img[u + i][v + j] - avg) ** 2
-    return (s ** 0.5) / (2 * n + 1)
+    for i in range(0, shape[0]):
+        for j in range(0, shape[1]):
+            s += (img[i][j] - avg)**2
+
+    return math.sqrt(float(s) / img.size)
 
 
-def zncc(img1, img2, u1, v1, u2, v2, n):
-    stdDeviation1 = getStandardDeviation(img1, u1, v1, n)
-    stdDeviation2 = getStandardDeviation(img2, u2, v2, n)
+def zncc(img1, img2):
+    shape = img1.shape
 
-    avg1 = getAverage(img1, u1, v1, n)
-    avg2 = getAverage(img2, u2, v2, n)
+    if shape != img2.shape:
+        raise Exception("Images have the be the same shape")
+
+    avg1 = average(img1)
+    avg2 = average(img2)
+    deviation1 = standard_deviation(img1, avg1)
+    deviation2 = standard_deviation(img2, avg2)
 
     s = 0
-    for i in range(-n, n + 1):
-        for j in range(-n, n + 1):
-            s += (img1[u1 + i][v1 + j] - avg1) * (img2[u2 + i][v2 + j] - avg2)
-    return float(s) / ((2 * n + 1) ** 2 * stdDeviation1 * stdDeviation2)
+    for i in range(0, shape[0]):
+        for j in range(0, shape[1]):
+            s += (1 / (deviation1 * deviation2)) * (img1[i][j] - avg1) * (img2[i][j] - avg2)
+
+    return float(s) / img1.size
 
 
 if __name__ == "__main__":
-    A = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-    B1 = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-    B2 = [[1, 2, 3], [4, 5, 6], [7, 8, 7]]
-    print(zncc(A, B1, 1, 1, 1, 1, 1))
-    print(zncc(A, B2, 1, 1, 1, 1, 1))
+    A = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    B1 = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    B2 = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 7]])
+    print(zncc(A, B1))
+    print(zncc(A, B2))

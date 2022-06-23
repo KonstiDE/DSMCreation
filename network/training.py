@@ -37,7 +37,7 @@ from network.provider.pytorchtools import (
     EarlyStopping
 )
 
-from network.metrics.zncc_custom import (
+from network.metrics.zncc import (
     zncc
 )
 
