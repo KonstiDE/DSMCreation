@@ -1,49 +1,33 @@
+import datetime
 import math
+import time
+
 import numpy as np
 
 
-def average(img):
-    shape = img.shape
-    s = 0
-    for i in range(0, shape[0]):
-        for j in range(0, shape[1]):
-            s += img[i][j]
+def zncc(img1, img2, eps=0.00001):
+    img1_size = len(img1)
 
-    return float(s) / img.size
+    if img1_size != len(img2):
+        raise Exception("Images have to be the same size")
 
-
-def standard_deviation(img, avg):
-    shape = img.shape
-    s = 0
-    for i in range(0, shape[0]):
-        for j in range(0, shape[1]):
-            s += (img[i][j] - avg)**2
-
-    return math.sqrt(float(s) / img.size)
-
-
-def zncc(img1, img2):
-    shape = img1.shape
-
-    if shape != img2.shape:
-        raise Exception("Images have the be the same shape")
-
-    avg1 = average(img1)
-    avg2 = average(img2)
-    deviation1 = standard_deviation(img1, avg1)
-    deviation2 = standard_deviation(img2, avg2)
+    avg1 = np.mean(img1)
+    avg2 = np.mean(img2)
+    first = 1 / (np.std(img1) * np.std(img2) + eps)
 
     s = 0
-    for i in range(0, shape[0]):
-        for j in range(0, shape[1]):
-            s += (1 / (deviation1 * deviation2)) * (img1[i][j] - avg1) * (img2[i][j] - avg2)
+    for p1, p2 in zip(img1, img2):
+        s += first * (p1 - avg1) * (p2 - avg2)
 
-    return float(s) / img1.size
+    return s / img1_size
 
 
 if __name__ == "__main__":
-    A = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-    B1 = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-    B2 = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 7]])
-    print(zncc(A, B1))
-    print(zncc(A, B2))
+    A = np.random.randn(512, 512).flatten()
+    B1 = np.random.randn(512, 512).flatten()
+
+    stamp = time.time() * 1000
+    znccv = zncc(A, B1)
+    print("{}:: That took {}ms".format(znccv, time.time() * 1000 - stamp))
+
+    # print(zncc(A, B2))

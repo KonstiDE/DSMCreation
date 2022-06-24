@@ -50,16 +50,15 @@ class L1SSIMLoss(nn.Module):
 
     def forward(self, data, target):
         ssims = []
+        maes = []
         for i in range(0, data.shape[0]):
             data_single = data[i][0].cpu().detach().numpy()
             target_single = target[i][0].cpu().detach().numpy()
 
             ssims.append(ski.structural_similarity(target_single, data_single, data_range=max(target_single.max(), data_single.max()), full=False))
+            maes.append(data_single.mean() - target_single.mean())
 
-        mssim = s.mean(ssims)
-        mae_loss = nn.L1Loss()(target, data)
-
-        return torch.Tensor([mae_loss.item() + 2*(1 - mssim)]).detach_.to(device)
+        return 1
 
 
 def train(epoch, loader, loss_fn, optimizer, scaler, model):
@@ -103,9 +102,9 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model):
         for i in range(0, data.shape[0]):
             data_single = data[i][0]
             target_single = target[i][0]
-            running_mse.append(ski.mean_squared_error(target_single, data_single))
+            running_mse.append(skl.mean_absolute_error(target_single, data_single))
             running_ssim.append(ski.structural_similarity(target_single, data_single, data_range=float(max(target_single.max(), data_single.max())), full=False))
-            running_zncc.append(zncc(data_single, target_single))
+            running_zncc.append(zncc(data_single.flatten(), target_single.flatten()))
 
         loop.set_postfix(info="Epoch {}, train, loss={:.5f}".format(epoch, loss_value))
         running_loss.append(loss_value)
@@ -149,9 +148,9 @@ def valid(epoch, loader, loss_fn, model):
         for i in range(0, data.shape[0]):
             data_single = data[i][0]
             target_single = target[i][0]
-            running_mse.append(ski.mean_squared_error(target_single, data_single))
+            running_mse.append(skl.mean_absolute_error(target_single, data_single))
             running_ssim.append(ski.structural_similarity(target_single, data_single, data_range=float(max(target_single.max(), data_single.max())), full=False))
-            running_zncc.append(zncc(target_single, data_single))
+            running_zncc.append(zncc(target_single.flatten(), data_single.flatten()))
 
         loop.set_postfix(info="Epoch {}, valid, loss={:.5f}".format(epoch, loss_value))
         running_loss.append(loss_value)
@@ -164,7 +163,7 @@ def valid(epoch, loader, loss_fn, model):
 def run(num_epochs, lr, epoch_to_start_from):
     model = UNET_FANNED(in_channels=4, out_channels=1).to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr)
-    loss_fn = L1SSIMLoss()
+    loss_fn = nn.MSELoss()
     scaler = torch.cuda.amp.GradScaler()
     early_stopping = EarlyStopping(patience=5, verbose=True)
     path_train = split['train'][1]
