@@ -45,27 +45,6 @@ from network.metrics.zncc import (
 from unet_fanned.model import UNET_FANNED
 
 
-class L1SSIMLoss(nn.Module):
-    def __int__(self):
-        super(L1SSIMLoss, self).__int__()
-
-    def forward(self, data, target):
-        ssims = []
-        maes = []
-        for i in range(0, data.shape[0]):
-            data_single = data[i][0].cpu().detach().numpy()
-            target_single = target[i][0].cpu().detach().numpy()
-
-            ssims.append(ski.structural_similarity(target_single, data_single,
-                                                   data_range=max(target_single.max(), data_single.max()), full=False))
-            maes.append(data_single.mean() - target_single.mean())
-
-        loss_tensor = torch.Tensor([s.mean(maes) + 2 * s.mean(ssims)]).to(device)
-        loss_tensor.requires_grad = True
-
-        return -loss_tensor
-
-
 def train(epoch, loader, loss_fn, optimizer, scaler, model):
     torch.enable_grad()
     model.train()
@@ -95,19 +74,19 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model):
 
         loss_value = loss.item()
 
-        loss.backward()
-        #scaler.step(optimizer)
-        #caler.update()
+        scaler.scale(loss).backward()
+        scaler.step(optimizer)
+        scaler.update()
 
         data = data.cpu().detach().numpy()
         target = target.cpu().detach().numpy()
 
         running_mae.append(loss_value)
+        running_mse.append(ski.mean_squared_error(target, data))
 
         for i in range(0, data.shape[0]):
             data_single = data[i][0]
             target_single = target[i][0]
-            running_mse.append(ski.mean_squared_error(target_single, data_single))
             running_ssim.append(ski.structural_similarity(target_single, data_single,
                                                           data_range=float(max(target_single.max(), data_single.max())),
                                                           full=False))
@@ -151,11 +130,11 @@ def valid(epoch, loader, loss_fn, model):
         target = target.cpu().detach().numpy()
 
         running_mae.append(loss_value)
+        running_mse.append(ski.mean_squared_error(target, data))
 
         for i in range(0, data.shape[0]):
             data_single = data[i][0]
             target_single = target[i][0]
-            running_mse.append(ski.mean_squared_error(target_single, data_single))
             running_ssim.append(ski.structural_similarity(target_single, data_single,
                                                           data_range=float(max(target_single.max(), data_single.max())),
                                                           full=False))
@@ -172,7 +151,7 @@ def valid(epoch, loader, loss_fn, model):
 def run(num_epochs, lr, epoch_to_start_from):
     model = UNET_FANNED(in_channels=4, out_channels=1).to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr)
-    loss_fn = L1SSIMLoss()
+    loss_fn = nn.L1Loss()
     scaler = torch.cuda.amp.GradScaler()
     early_stopping = EarlyStopping(patience=5, verbose=True)
     path_train = split['train'][1]
@@ -192,7 +171,7 @@ def run(num_epochs, lr, epoch_to_start_from):
     overall_training_zncc = []
     overall_validation_zncc = []
 
-    path = "{}_{}_{}_{}_losstests/".format(
+    path = "{}_{}_{}_{}_v3/".format(
         "results",
         str(loss_fn.__class__.__name__),
         str(optimizer.__class__.__name__),
@@ -224,8 +203,8 @@ def run(num_epochs, lr, epoch_to_start_from):
         else:
             raise Exception("No model_epoch" + str(epoch_to_start_from) + ".pt found")
 
-    train_loader = get_loader(path_train, batch_size, num_workers, pin_memory, amount=7000)
-    validation_loader = get_loader(path_validation, batch_size, num_workers, pin_memory, amount=2000)
+    train_loader = get_loader(path_train, batch_size, num_workers, pin_memory, amount=0)
+    validation_loader = get_loader(path_validation, batch_size, num_workers, pin_memory, amount=0)
 
     for epoch in range(epochs_done + 1, num_epochs + 1):
         training_loss, training_mae, training_mse, training_ssim, training_zncc = train(epoch, train_loader, loss_fn,
@@ -289,12 +268,6 @@ def run(num_epochs, lr, epoch_to_start_from):
         if early_stopping.early_stop:
             print("Early stopping")
             break
-
-    plt.figure()
-    plt.plot(overall_training_loss, 'b', label="Loss training")
-    plt.plot(overall_validation_loss, 'r', label="Loss validation")
-    plt.savefig(path + "losses.png")
-    plt.show()
 
     metrics = np.array([
         overall_training_loss,

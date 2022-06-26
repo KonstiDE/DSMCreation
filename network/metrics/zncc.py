@@ -6,11 +6,6 @@ import numpy as np
 
 
 def zncc(img1, img2, eps=0.00001):
-    img1_size = len(img1)
-
-    if img1_size != len(img2):
-        raise Exception("Images have to be the same size")
-
     avg1 = np.mean(img1)
     avg2 = np.mean(img2)
     first = 1 / (np.std(img1) * np.std(img2) + eps)
@@ -19,7 +14,7 @@ def zncc(img1, img2, eps=0.00001):
     for p1, p2 in zip(img1, img2):
         s += first * (p1 - avg1) * (p2 - avg2)
 
-    return s / img1_size
+    return s / len(img1)
 
 
 if __name__ == "__main__":
