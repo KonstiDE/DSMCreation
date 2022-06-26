@@ -16,6 +16,7 @@ import torchvision.transforms.functional as tf
 sys.path.append(os.getcwd())
 
 import shutup
+
 shutup.please()
 
 from network.provider.dataset_provider import (
@@ -55,10 +56,14 @@ class L1SSIMLoss(nn.Module):
             data_single = data[i][0].cpu().detach().numpy()
             target_single = target[i][0].cpu().detach().numpy()
 
-            ssims.append(ski.structural_similarity(target_single, data_single, data_range=max(target_single.max(), data_single.max()), full=False))
+            ssims.append(ski.structural_similarity(target_single, data_single,
+                                                   data_range=max(target_single.max(), data_single.max()), full=False))
             maes.append(data_single.mean() - target_single.mean())
 
-        return 1
+        loss_tensor = torch.Tensor([s.mean(maes) + 2 * s.mean(ssims)]).to(device)
+        loss_tensor.requires_grad = True
+
+        return -loss_tensor
 
 
 def train(epoch, loader, loss_fn, optimizer, scaler, model):
@@ -90,9 +95,9 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model):
 
         loss_value = loss.item()
 
-        scaler.scale(loss).backward()
-        scaler.step(optimizer)
-        scaler.update()
+        loss.backward()
+        #scaler.step(optimizer)
+        #caler.update()
 
         data = data.cpu().detach().numpy()
         target = target.cpu().detach().numpy()
@@ -102,16 +107,18 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model):
         for i in range(0, data.shape[0]):
             data_single = data[i][0]
             target_single = target[i][0]
-            running_mse.append(skl.mean_absolute_error(target_single, data_single))
-            running_ssim.append(ski.structural_similarity(target_single, data_single, data_range=float(max(target_single.max(), data_single.max())), full=False))
+            running_mse.append(ski.mean_squared_error(target_single, data_single))
+            running_ssim.append(ski.structural_similarity(target_single, data_single,
+                                                          data_range=float(max(target_single.max(), data_single.max())),
+                                                          full=False))
             running_zncc.append(zncc(data_single.flatten(), target_single.flatten()))
 
         loop.set_postfix(info="Epoch {}, train, loss={:.5f}".format(epoch, loss_value))
         running_loss.append(loss_value)
 
     return s.mean(running_loss), s.mean(running_mae), \
-            s.mean(running_mse), s.mean(running_ssim), \
-            s.mean(running_zncc)
+           s.mean(running_mse), s.mean(running_ssim), \
+           s.mean(running_zncc)
 
 
 def valid(epoch, loader, loss_fn, model):
@@ -148,22 +155,24 @@ def valid(epoch, loader, loss_fn, model):
         for i in range(0, data.shape[0]):
             data_single = data[i][0]
             target_single = target[i][0]
-            running_mse.append(skl.mean_absolute_error(target_single, data_single))
-            running_ssim.append(ski.structural_similarity(target_single, data_single, data_range=float(max(target_single.max(), data_single.max())), full=False))
+            running_mse.append(ski.mean_squared_error(target_single, data_single))
+            running_ssim.append(ski.structural_similarity(target_single, data_single,
+                                                          data_range=float(max(target_single.max(), data_single.max())),
+                                                          full=False))
             running_zncc.append(zncc(target_single.flatten(), data_single.flatten()))
 
         loop.set_postfix(info="Epoch {}, valid, loss={:.5f}".format(epoch, loss_value))
         running_loss.append(loss_value)
 
     return s.mean(running_loss), s.mean(running_mae), \
-            s.mean(running_mse), s.mean(running_ssim), \
-            s.mean(running_zncc)
+           s.mean(running_mse), s.mean(running_ssim), \
+           s.mean(running_zncc)
 
 
 def run(num_epochs, lr, epoch_to_start_from):
     model = UNET_FANNED(in_channels=4, out_channels=1).to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr)
-    loss_fn = nn.MSELoss()
+    loss_fn = L1SSIMLoss()
     scaler = torch.cuda.amp.GradScaler()
     early_stopping = EarlyStopping(patience=5, verbose=True)
     path_train = split['train'][1]
@@ -219,8 +228,11 @@ def run(num_epochs, lr, epoch_to_start_from):
     validation_loader = get_loader(path_validation, batch_size, num_workers, pin_memory, amount=2000)
 
     for epoch in range(epochs_done + 1, num_epochs + 1):
-        training_loss, training_mae, training_mse, training_ssim, training_zncc = train(epoch, train_loader, loss_fn, optimizer, scaler, model)
-        validation_loss, validation_mae, validation_mse, validation_ssim, validation_zncc = valid(epoch, validation_loader, loss_fn, model)
+        training_loss, training_mae, training_mse, training_ssim, training_zncc = train(epoch, train_loader, loss_fn,
+                                                                                        optimizer, scaler, model)
+        validation_loss, validation_mae, validation_mse, validation_ssim, validation_zncc = valid(epoch,
+                                                                                                  validation_loader,
+                                                                                                  loss_fn, model)
 
         overall_training_loss.append(training_loss)
         overall_validation_loss.append(validation_loss)
@@ -271,7 +283,8 @@ def run(num_epochs, lr, epoch_to_start_from):
             overall_validation_zncc,
         ])
 
-        savetxt(path + "metrics.csv", metrics, delimiter=',', header="tloss,vloss,tmae,tmse,tssim,vmae,vmse,vssim", fmt='%s')
+        savetxt(path + "metrics.csv", metrics, delimiter=',',
+                header="tloss,vloss,tmae,tmse,tssim,tzncc,vmae,vmse,vssim,vzncc", fmt='%s')
 
         if early_stopping.early_stop:
             print("Early stopping")
@@ -296,7 +309,8 @@ def run(num_epochs, lr, epoch_to_start_from):
         overall_validation_zncc,
     ])
 
-    savetxt(path + "metrics.csv", metrics, delimiter=',', header="tloss,vloss,tmae,tmse,tssim,vmae,vmse,vssim", fmt='%s')
+    savetxt(path + "metrics.csv", metrics, delimiter=',',
+            header="tloss,vloss,tmae,tmse,tzncc,tssim,vmae,vmse,vssim,vzncc", fmt='%s')
 
 
 if __name__ == '__main__':
