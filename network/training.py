@@ -20,8 +20,6 @@ sys.path.append(os.getcwd())
 
 import shutup
 
-shutup.please()
-
 from network.provider.dataset_provider import (
     get_loader
 )
@@ -47,9 +45,9 @@ from network.metrics.zncc import (
 
 from unet_fanned.model import UNET_FANNED
 
-#Metric init
+#Metrics init
 torch_mse = MeanSquaredError().to(device)
-torch_SSIM = (kernel_size=5).to(device)
+torch_SSIM = StructuralSimilarityIndexMeasure(kernel_size=(5, 5)).to(device)
 
 
 def train(epoch, loader, loss_fn, optimizer, scaler, model):
@@ -86,13 +84,13 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model):
         scaler.update()
 
         running_mae.append(loss_value)
-        running_mse.append(torch_mse(data, target))
-        running_ssim.append(torch_SSIM(data, target))
+        running_mse.append(torch_mse(data, target).item())
+        running_ssim.append(torch_SSIM(data, target).item())
 
-        #for i in range(0, data.shape[0]):
-            #data_single = data[i][0]
-            #target_single = target[i][0]
-            #running_zncc.append(zncc(data_single.flatten(), target_single.flatten()))
+        for i in range(0, data.shape[0]):
+            data_single = data[i][0]
+            target_single = target[i][0]
+            running_zncc.append(zncc(data_single.flatten(), target_single.flatten()))
 
         loop.set_postfix(info="Epoch {}, train, loss={:.5f}".format(epoch, loss_value))
         running_loss.append(loss_value)
@@ -128,18 +126,13 @@ def valid(epoch, loader, loss_fn, model):
 
         loss_value = loss.item()
 
-        data = data.cpu().detach().numpy()
-        target = target.cpu().detach().numpy()
-
         running_mae.append(loss_value)
-        running_mse.append(ski.mean_squared_error(target, data))
+        running_mse.append(torch_mse(data, target).item())
+        running_ssim.append(torch_SSIM(data, target).item())
 
         for i in range(0, data.shape[0]):
             data_single = data[i][0]
             target_single = target[i][0]
-            running_ssim.append(ski.structural_similarity(target_single, data_single,
-                                                          data_range=float(max(target_single.max(), data_single.max())),
-                                                          full=False))
             running_zncc.append(zncc(target_single.flatten(), data_single.flatten()))
 
         loop.set_postfix(info="Epoch {}, valid, loss={:.5f}".format(epoch, loss_value))
@@ -151,6 +144,8 @@ def valid(epoch, loader, loss_fn, model):
 
 
 def run(num_epochs, lr, epoch_to_start_from):
+    torch.cuda.empty_cache()
+
     model = UNET_FANNED(in_channels=4, out_channels=1).to(device).cuda()
     optimizer = optim.Adam(model.parameters(), lr=lr)
     loss_fn = nn.L1Loss()
