@@ -13,6 +13,9 @@ import numpy as np
 import sys
 import torchvision.transforms.functional as tf
 
+from torchmetrics.regression import MeanSquaredError
+from torchmetrics.image import StructuralSimilarityIndexMeasure
+
 sys.path.append(os.getcwd())
 
 import shutup
@@ -44,6 +47,10 @@ from network.metrics.zncc import (
 
 from unet_fanned.model import UNET_FANNED
 
+#Metric init
+torch_mse = MeanSquaredError().to(device)
+torch_SSIM = (kernel_size=5).to(device)
+
 
 def train(epoch, loader, loss_fn, optimizer, scaler, model):
     torch.enable_grad()
@@ -60,7 +67,7 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model):
     for batch_index, (data, target, dataframepath) in enumerate(loop):
         optimizer.zero_grad(set_to_none=True)
 
-        data = data.to(device)
+        data = data.cuda()
         data = model(data, data)
 
         data[data < 0] = 0
@@ -78,19 +85,14 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model):
         scaler.step(optimizer)
         scaler.update()
 
-        data = data.cpu().detach().numpy()
-        target = target.cpu().detach().numpy()
-
         running_mae.append(loss_value)
-        running_mse.append(ski.mean_squared_error(target, data))
+        running_mse.append(torch_mse(data, target))
+        running_ssim.append(torch_SSIM(data, target))
 
-        for i in range(0, data.shape[0]):
-            data_single = data[i][0]
-            target_single = target[i][0]
-            running_ssim.append(ski.structural_similarity(target_single, data_single,
-                                                          data_range=float(max(target_single.max(), data_single.max())),
-                                                          full=False))
-            running_zncc.append(zncc(data_single.flatten(), target_single.flatten()))
+        #for i in range(0, data.shape[0]):
+            #data_single = data[i][0]
+            #target_single = target[i][0]
+            #running_zncc.append(zncc(data_single.flatten(), target_single.flatten()))
 
         loop.set_postfix(info="Epoch {}, train, loss={:.5f}".format(epoch, loss_value))
         running_loss.append(loss_value)
@@ -149,7 +151,7 @@ def valid(epoch, loader, loss_fn, model):
 
 
 def run(num_epochs, lr, epoch_to_start_from):
-    model = UNET_FANNED(in_channels=4, out_channels=1).to(device)
+    model = UNET_FANNED(in_channels=4, out_channels=1).to(device).cuda()
     optimizer = optim.Adam(model.parameters(), lr=lr)
     loss_fn = nn.L1Loss()
     scaler = torch.cuda.amp.GradScaler()
@@ -203,8 +205,10 @@ def run(num_epochs, lr, epoch_to_start_from):
         else:
             raise Exception("No model_epoch" + str(epoch_to_start_from) + ".pt found")
 
-    train_loader = get_loader(path_train, batch_size, num_workers, pin_memory, amount=0)
-    validation_loader = get_loader(path_validation, batch_size, num_workers, pin_memory, amount=0)
+    model.to(device)
+
+    train_loader = get_loader(path_train, batch_size, num_workers, pin_memory, amount=700)
+    validation_loader = get_loader(path_validation, batch_size, num_workers, pin_memory, amount=200)
 
     for epoch in range(epochs_done + 1, num_epochs + 1):
         training_loss, training_mae, training_mse, training_ssim, training_zncc = train(epoch, train_loader, loss_fn,
