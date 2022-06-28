@@ -222,7 +222,7 @@ def run(num_epochs, lr, epoch_to_start_from):
         overall_validation_loss.append(validation_loss)
 
         overall_training_mae.append(training_mae)
-        overall_training_mse.append(training_mse)
+        overall_validation_mae.append(validation_mae)
 
         overall_training_mse.append(training_mse)
         overall_validation_mse.append(validation_mse)
@@ -265,7 +265,7 @@ def run(num_epochs, lr, epoch_to_start_from):
             overall_validation_mse,
             overall_validation_ssim,
             overall_validation_zncc,
-        ])
+        ], dtype='object')
 
         savetxt(path + "metrics.csv", metrics, delimiter=',',
                 header="tloss,vloss,tmae,tmse,tssim,tzncc,vmae,vmse,vssim,vzncc", fmt='%s')
@@ -285,7 +285,7 @@ def run(num_epochs, lr, epoch_to_start_from):
         overall_validation_mse,
         overall_validation_ssim,
         overall_validation_zncc,
-    ])
+    ], dtype='object')
 
     savetxt(path + "metrics.csv", metrics, delimiter=',',
             header="tloss,vloss,tmae,tmse,tzncc,tssim,vmae,vmse,vssim,vzncc", fmt='%s')
