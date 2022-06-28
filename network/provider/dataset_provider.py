@@ -44,7 +44,7 @@ class NrwDataSet(Dataset):
         return sentinel, dsm, dataframepath
 
 
-def get_loader(npz_dir, batch_size, num_workers=4, pin_memory=True, shuffle=True, amount=0):
+def get_loader(npz_dir, batch_size, num_workers=2, pin_memory=True, shuffle=True, amount=0):
     train_ds = NrwDataSet(npz_dir, amount)
 
     train_loader = DataLoader(

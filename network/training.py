@@ -16,7 +16,6 @@ import sys
 import torchvision.transforms.functional as tf
 
 from torchmetrics.regression import MeanSquaredError
-from torchgeometry.losses import ssim
 from torchmetrics.image import StructuralSimilarityIndexMeasure
 
 sys.path.append(os.getcwd())
@@ -51,7 +50,7 @@ from network.metrics.zncc import (
 from unet_fanned.model import UNET_FANNED
 
 
-def train(epoch, loader, loss_fn, optimizer, scaler, model, mse):
+def train(epoch, loader, loss_fn, optimizer, scaler, model, mse, ssim):
     torch.enable_grad()
     model.train()
 
@@ -87,14 +86,10 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model, mse):
         running_mae.append(loss_value)
         running_mse.append(mse(data, target).item())
         running_zncc.append(zncc(data, target).item())
+        running_ssim.append(ssim(data, target).item())
 
-        running_ssim.append(ssim(
-            data,
-            target,
-            window_size=5,
-            max_val=max(torch.max(data).item(), torch.max(target).item()),
-            reduction='mean'
-        ).item())
+        mse.reset()
+        ssim.reset()
 
         loop.set_postfix(info="Epoch {}, train, loss={:.5f}".format(epoch, loss_value))
         running_loss.append(loss_value)
@@ -104,7 +99,7 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model, mse):
            s.mean(running_zncc)
 
 
-def valid(epoch, loader, loss_fn, model, mse):
+def valid(epoch, loader, loss_fn, model, mse, ssim):
     model.eval()
 
     loop = prog(loader)
@@ -133,13 +128,10 @@ def valid(epoch, loader, loss_fn, model, mse):
         running_mae.append(loss_value)
         running_mse.append(mse(data, target).item())
         running_zncc.append(zncc(data, target).item())
-        running_ssim.append(ssim(
-            data,
-            target,
-            window_size=5,
-            max_val=max(torch.max(data).item(), torch.max(target).item()),
-            reduction='mean'
-        ).item())
+        running_ssim.append(ssim(data, target).item())
+
+        mse.reset()
+        ssim.reset()
 
         loop.set_postfix(info="Epoch {}, valid, loss={:.5f}".format(epoch, loss_value))
         running_loss.append(loss_value)
@@ -161,6 +153,7 @@ def run(num_epochs, lr, epoch_to_start_from):
     path_validation = split['validation'][1]
 
     torch_mse = MeanSquaredError().to(device)
+    torch_ssim = StructuralSimilarityIndexMeasure(kernel_size=(5, 5)).to(device)
 
     epochs_done = 0
 
@@ -210,23 +203,19 @@ def run(num_epochs, lr, epoch_to_start_from):
 
     model.to(device)
 
-    train_loader = get_loader(path_train, batch_size, num_workers, pin_memory, amount=70)
-    validation_loader = get_loader(path_validation, batch_size, num_workers, pin_memory, amount=20)
+    train_loader = get_loader(path_train, batch_size, num_workers, pin_memory, amount=7000)
+    validation_loader = get_loader(path_validation, batch_size, num_workers, pin_memory, amount=2000)
 
     for epoch in range(epochs_done + 1, num_epochs + 1):
         training_loss, training_mae, training_mse, training_ssim, training_zncc = train(epoch, train_loader, loss_fn,
                                                                                         optimizer, scaler, model,
-                                                                                        torch_mse)
+                                                                                        torch_mse, torch_ssim)
         torch.cuda.empty_cache()
-        print(training_loss)
-        print(training_mae)
-        print(training_zncc)
-        print(training_ssim)
 
         validation_loss, validation_mae, validation_mse, validation_ssim, validation_zncc = valid(epoch,
                                                                                                   validation_loader,
                                                                                                   loss_fn, model,
-                                                                                                  torch_mse)
+                                                                                                  torch_mse, torch_ssim)
         torch.cuda.empty_cache()
 
         overall_training_loss.append(training_loss)
@@ -235,7 +224,7 @@ def run(num_epochs, lr, epoch_to_start_from):
         overall_training_mae.append(training_mae)
         overall_training_mse.append(training_mse)
 
-        overall_validation_mae.append(validation_mae)
+        overall_training_mse.append(training_mse)
         overall_validation_mse.append(validation_mse)
 
         overall_training_ssim.append(training_ssim)
