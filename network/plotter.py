@@ -96,4 +96,4 @@ def plot(path):
 
 
 if __name__ == '__main__':
-    plot("/home/fkt48uj/nrw/results_L1SSIMLoss_Adam_UNET_FANNED_losstests/metrics.csv")
+    plot("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v3_lasttest/metrics.csv")
