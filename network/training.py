@@ -143,6 +143,11 @@ def valid(epoch, loader, loss_fn, model, mse, ssim):
 
 def run(num_epochs, lr, epoch_to_start_from):
     torch.cuda.empty_cache()
+    torch.backends.cudnn.benchmark = True
+
+    torch.autograd.set_detect_anomaly(False)
+    torch.autograd.profiler.profile(False)
+    torch.autograd.profiler.emit_nvtx(False)
 
     model = UNET_FANNED(in_channels=4, out_channels=1).to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr)
