@@ -66,7 +66,7 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model, mse, ssim):
         optimizer.zero_grad(set_to_none=True)
 
         data = data.cuda()
-        data = model(data, data)
+        data = model(data)
 
         data[data < 0] = 0
         target[target < 0] = 0
@@ -112,7 +112,7 @@ def valid(epoch, loader, loss_fn, model, mse, ssim):
 
     for batch_index, (data, target, dataframepath) in enumerate(loop):
         data = data.to(device)
-        data = model(data, data)
+        data = model(data)
 
         data[data < 0] = 0
         target[target < 0] = 0
@@ -143,14 +143,9 @@ def valid(epoch, loader, loss_fn, model, mse, ssim):
 
 def run(num_epochs, lr, epoch_to_start_from):
     torch.cuda.empty_cache()
-    torch.backends.cudnn.benchmark = True
-
-    torch.autograd.set_detect_anomaly(False)
-    torch.autograd.profiler.profile(False)
-    torch.autograd.profiler.emit_nvtx(False)
 
     model = UNET_FANNED(in_channels=4, out_channels=1).to(device)
-    optimizer = optim.Adam(model.parameters(), lr=lr)
+    optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
     loss_fn = nn.L1Loss()
     scaler = torch.cuda.amp.GradScaler()
     early_stopping = EarlyStopping(patience=5, verbose=True)
@@ -174,7 +169,7 @@ def run(num_epochs, lr, epoch_to_start_from):
     overall_training_zncc = []
     overall_validation_zncc = []
 
-    path = "{}_{}_{}_{}_v3/".format(
+    path = "{}_{}_{}_{}_v1/".format(
         "results",
         str(loss_fn.__class__.__name__),
         str(optimizer.__class__.__name__),
@@ -297,4 +292,4 @@ def run(num_epochs, lr, epoch_to_start_from):
 
 
 if __name__ == '__main__':
-    run(num_epochs=100, lr=3e-04, epoch_to_start_from=0)
+    run(num_epochs=100, lr=5e-06, epoch_to_start_from=0)
