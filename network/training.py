@@ -1,12 +1,9 @@
 import os
-
-import pytorch_ssim
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import sklearn.metrics as skl
 import skimage.metrics as ski
-import torchgeometry
 from tqdm.auto import tqdm as prog
 import matplotlib.pyplot as plt
 from numpy import savetxt
@@ -20,7 +17,6 @@ from torchmetrics.image import StructuralSimilarityIndexMeasure
 
 sys.path.append(os.getcwd())
 
-import gc
 import shutup
 shutup.please()
 
@@ -77,11 +73,11 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model, mse, ssim):
         with torch.cuda.amp.autocast():
             loss = loss_fn(data, target)
 
-        loss_value = loss.item()
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
 
-        scaler.scale(loss).backward()
-        scaler.step(optimizer)
-        scaler.update()
+        loss_value = loss.item()
 
         running_mae.append(loss_value)
         running_mse.append(mse(data, target).item())
@@ -145,7 +141,7 @@ def run(num_epochs, lr, epoch_to_start_from):
     torch.cuda.empty_cache()
 
     model = UNET_FANNED(in_channels=4, out_channels=1).to(device)
-    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
+    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=5e-4)
     loss_fn = nn.L1Loss()
     scaler = torch.cuda.amp.GradScaler()
     early_stopping = EarlyStopping(patience=5, verbose=True)
@@ -203,8 +199,8 @@ def run(num_epochs, lr, epoch_to_start_from):
 
     model.to(device)
 
-    train_loader = get_loader(path_train, batch_size, num_workers, pin_memory, amount=70000)
-    validation_loader = get_loader(path_validation, batch_size, num_workers, pin_memory, amount=20000)
+    train_loader = get_loader(path_train, batch_size, num_workers, pin_memory, amount=3500)
+    validation_loader = get_loader(path_validation, batch_size, num_workers, pin_memory, amount=1000)
 
     for epoch in range(epochs_done + 1, num_epochs + 1):
         training_loss, training_mae, training_mse, training_ssim, training_zncc = train(epoch, train_loader, loss_fn,
@@ -292,4 +288,4 @@ def run(num_epochs, lr, epoch_to_start_from):
 
 
 if __name__ == '__main__':
-    run(num_epochs=100, lr=5e-06, epoch_to_start_from=0)
+    run(num_epochs=100, lr=5e-05, epoch_to_start_from=0)

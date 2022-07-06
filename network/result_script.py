@@ -39,7 +39,7 @@ def test(amount, model_path, test_data_path):
             break
 
         data = data.unsqueeze(0).to("cuda:0")
-        prediction = unet(data, data)
+        prediction = unet(data)
 
         target = target.unsqueeze(0).unsqueeze(0)
         target = tf.resize(target, size=prediction.shape[2:])
@@ -56,17 +56,17 @@ def test(amount, model_path, test_data_path):
         im = axs[0].imshow(data, cmap="Reds_r")
         axs[0].set_xticklabels([])
         axs[0].set_yticklabels([])
-        #plt.colorbar(im, ax=axs[0])
+        # plt.colorbar(im, ax=axs[0])
 
         im = axs[1].imshow(prediction, cmap="viridis")
         axs[1].set_xticklabels([])
         axs[1].set_yticklabels([])
-        #plt.colorbar(im, ax=axs[1])
+        plt.colorbar(im, ax=axs[1])
 
         im = axs[2].imshow(target, cmap="viridis")
         axs[2].set_xticklabels([])
         axs[2].set_yticklabels([])
-        #plt.colorbar(im, ax=axs[2])
+        plt.colorbar(im, ax=axs[2])
 
         outlier_file.write(src_path + "\t\t" + str(mae) + "\n")
 
@@ -88,7 +88,7 @@ def test(amount, model_path, test_data_path):
 
 if __name__ == '__main__':
     test(
-        0,
-        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_nearn_500_1024_potency_attention/model_epoch17.pt",
+        200,
+        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/model_epoch7.pt",
         "/home/fkt48uj/nrw/dataset/data/test/"
     )

@@ -15,9 +15,9 @@ from unet_fanned.model import UNET_FANNED
 warnings.filterwarnings("ignore")
 
 DATA_PATH = "/home/fkt48uj/nrw/dataset/data/test/"
-MODEL_PATH_V1 = "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/model_epoch2.pt"
-MODEL_PATH_V2 = "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/model_epoch2.pt"
-MODEL_PATH_V3 = "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/model_epoch2.pt"
+MODEL_PATH_V1 = "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/model_epoch7.pt"
+MODEL_PATH_V2 = "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/model_epoch7.pt"
+MODEL_PATH_V3 = "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/model_epoch7.pt"
 BATCH_SIZE = 1
 DEVICE = "cuda:0"
 px = 1 / plt.rcParams['figure.dpi']
@@ -39,7 +39,7 @@ def perform_tests(loader, models, multiencoders, sample_ids=None):
     if sample_ids is None:
         sample_ids = [1, 2]
 
-    for height in range(30, 50):
+    for height in range(35, 45):
         fig, axs = plt.subplots(len(sample_ids), 2 + len(models), figsize=(29, height))
 
         h = 0
