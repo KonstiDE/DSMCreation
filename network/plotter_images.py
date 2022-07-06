@@ -15,9 +15,9 @@ from unet_fanned.model import UNET_FANNED
 warnings.filterwarnings("ignore")
 
 DATA_PATH = "/home/fkt48uj/nrw/dataset/data/test/"
-MODEL_PATH_V1 = "/home/fkt48uj/nrw/results_L1Loss_RMSprop_UNET_FANNED_v1/model_epoch7.pt"
-MODEL_PATH_V2 = "/home/fkt48uj/nrw/results_L1Loss_RMSprop_UNET_FANNED_v1/model_epoch7.pt"
-MODEL_PATH_V3 = "/home/fkt48uj/nrw/results_L1Loss_RMSprop_UNET_FANNED_v1/model_epoch7.pt"
+MODEL_PATH_V1 = "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/model_epoch2.pt"
+MODEL_PATH_V2 = "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/model_epoch2.pt"
+MODEL_PATH_V3 = "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/model_epoch2.pt"
 BATCH_SIZE = 1
 DEVICE = "cuda:0"
 px = 1 / plt.rcParams['figure.dpi']
@@ -52,6 +52,9 @@ def perform_tests(loader, models, multiencoders, sample_ids=None):
 
                 data = data.cpu()
                 target = target.cpu()
+
+                data[data < 0] = 0
+                target[target < 0] = 0
 
                 if not first_done:
                     first_done = True

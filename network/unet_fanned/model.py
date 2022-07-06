@@ -3,7 +3,7 @@ import torch.nn as nn
 
 import torchvision.transforms.functional as tf
 
-from unet_fanned.layers import (
+from layers import (
     DoubleConv,
     UpConv
 )
@@ -21,7 +21,7 @@ class UNET_FANNED(nn.Module):
         self.up_trans = nn.ModuleList()
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
 
-        self.final = nn.Conv2d(features[2], out_channels, kernel_size=(1, 1))
+        self.final = nn.Conv2d(features[1], out_channels, kernel_size=(1, 1))
 
         for i in range(len(features) - 2):
             self.down_convs.append(DoubleConv(features[i], features[i + 1]))
@@ -31,11 +31,7 @@ class UNET_FANNED(nn.Module):
         features = features[::-1]
 
         for i in range(len(features) - 2):
-            if i != (len(features) - 3):
-                self.up_convs.append(DoubleConv(features[i], features[i + 1]))
-            else:
-                self.up_convs.append(DoubleConv(features[i], features[i]))
-
+            self.up_convs.append(DoubleConv(features[i], features[i + 1]))
             self.up_trans.append(UpConv(features[i], features[i + 1]))
 
     def forward(self, x):

@@ -145,7 +145,7 @@ def run(num_epochs, lr, epoch_to_start_from):
     torch.cuda.empty_cache()
 
     model = UNET_FANNED(in_channels=4, out_channels=1).to(device)
-    optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
+    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
     loss_fn = nn.L1Loss()
     scaler = torch.cuda.amp.GradScaler()
     early_stopping = EarlyStopping(patience=5, verbose=True)
@@ -203,8 +203,8 @@ def run(num_epochs, lr, epoch_to_start_from):
 
     model.to(device)
 
-    train_loader = get_loader(path_train, batch_size, num_workers, pin_memory, amount=0)
-    validation_loader = get_loader(path_validation, batch_size, num_workers, pin_memory, amount=0)
+    train_loader = get_loader(path_train, batch_size, num_workers, pin_memory, amount=70000)
+    validation_loader = get_loader(path_validation, batch_size, num_workers, pin_memory, amount=20000)
 
     for epoch in range(epochs_done + 1, num_epochs + 1):
         training_loss, training_mae, training_mse, training_ssim, training_zncc = train(epoch, train_loader, loss_fn,
