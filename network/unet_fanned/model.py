@@ -24,7 +24,7 @@ class UNET_FANNED(nn.Module):
         self.up_trans = nn.ModuleList()
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
 
-        self.final = nn.Conv2d(features[2], out_channels, kernel_size=(1, 1))
+        self.final = nn.Conv2d(features[1], out_channels, kernel_size=(1, 1))
         self.bottleneck_unfanning = UnfanningAttention(features[-1], features[-1])
 
         for i in range(len(features) - 2):
@@ -43,11 +43,7 @@ class UNET_FANNED(nn.Module):
         features = features[::-1]
 
         for i in range(len(features) - 2):
-            if i != (len(features) - 3):
-                self.up_convs.append(DoubleConv_Small(features[i], features[i + 1]))
-            else:
-                self.up_convs.append(DoubleConv_Small(features[i], features[i]))
-
+            self.up_convs.append(DoubleConv_Small(features[i], features[i + 1]))
             self.up_trans.append(UpConv(features[i], features[i + 1]))
 
     def forward(self, x, y):
@@ -80,8 +76,6 @@ class UNET_FANNED(nn.Module):
         for i in range(len(self.up_convs)):
             bottleneck_unfanned = self.up_trans[i](bottleneck_unfanned)
 
-            # skip_connections_unfanned[i] = tf.resize(skip_connections_unfanned[i], size=bottleneck_unfanned.shape[2:])
-
             bottleneck_unfanned = torch.cat((bottleneck_unfanned, skip_connections_unfanned[i]), dim=1)
             bottleneck_unfanned = self.up_convs[i](bottleneck_unfanned)
 
@@ -91,7 +85,7 @@ class UNET_FANNED(nn.Module):
 if __name__ == '__main__':
     unet = UNET_FANNED(in_channels=4, out_channels=1)
 
-    a = torch.randn(1, 4, 500, 500)
+    a = torch.randn(1, 4, 512, 512)
     out = unet(a, a)
 
     print(out.shape)
