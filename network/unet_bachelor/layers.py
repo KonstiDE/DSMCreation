@@ -39,8 +39,6 @@ class DoubleConv(nn.Module):
         if self.in_channels != self.out_channels:
             save = self.correctance(save)
 
-        save = tf.center_crop(save, output_size=x.shape[2:])
-
         torch.add(x, save)
 
         return self.relu(x)

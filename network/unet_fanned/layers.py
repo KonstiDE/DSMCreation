@@ -21,7 +21,7 @@ class DoubleConv(nn.Module):
         self.out_channels = out_channels
 
         self.relu = nn.ReLU(inplace=True)
-        self.correctance = nn.Conv2d(in_channels, out_channels, kernel_size=(1, 1), bias=False, stride=(1, 1))
+        self.correctance = nn.Conv2d(in_channels, out_channels, kernel_size=(1, 1), bias=False)
 
         self.double_conv = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=(3, 3), bias=False, padding=1, padding_mode='reflect'),
@@ -39,6 +39,6 @@ class DoubleConv(nn.Module):
         if self.in_channels != self.out_channels:
             save = self.correctance(save)
 
-        x = torch.add(x, save)
+        torch.add(x, save)
 
         return self.relu(x)

@@ -1,24 +1,24 @@
 import torch
 import torch.nn as nn
-
 import torchvision.transforms.functional as tf
 
-from unet_fanned.layers import (
+from unet_bachelor.layers import (
     DoubleConv,
     UpConv
 )
 
 
 class UNET_FANNED(nn.Module):
-    def __init__(self, in_channels=4, out_channels=1):
+    def __init__(self, in_channels=4, out_channels=1, features=None):
         super(UNET_FANNED, self).__init__()
 
-        features = [in_channels, 64, 128, 256, 512, 1024]
+        if features is None:
+            features = [in_channels, 64, 128, 256, 512, 1024]
 
         self.down_convs = nn.ModuleList()
-        self.unfanning = nn.ModuleList()
         self.up_convs = nn.ModuleList()
         self.up_trans = nn.ModuleList()
+        self.unpool_correctances = nn.ModuleList()
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
 
         self.final = nn.Conv2d(features[1], out_channels, kernel_size=(1, 1))
@@ -48,17 +48,7 @@ class UNET_FANNED(nn.Module):
 
         for i in range(len(self.up_convs)):
             x = self.up_trans[i](x)
-
             go = torch.cat((x, skip_connections[i]), dim=1)
             x = self.up_convs[i](go)
 
         return self.final(x)
-
-
-if __name__ == '__main__':
-    unet = UNET_FANNED(in_channels=4, out_channels=1)
-
-    a = torch.randn(1, 4, 512, 512)
-    out = unet(a)
-
-    print(out.shape)

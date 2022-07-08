@@ -11,13 +11,14 @@ import torch.nn as nn
 from provider.dataset_provider import get_dataset
 
 from unet_fanned.model import UNET_FANNED
+from unet_bachelor.model import UNET
 
 warnings.filterwarnings("ignore")
 
 DATA_PATH = "/home/fkt48uj/nrw/dataset/data/test/"
-MODEL_PATH_V1 = "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/model_epoch7.pt"
-MODEL_PATH_V2 = "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/model_epoch7.pt"
-MODEL_PATH_V3 = "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/model_epoch7.pt"
+MODEL_PATH_V1 = "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1_wrelu/model_epoch8.pt"
+MODEL_PATH_V2 = "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1_wrelu/model_epoch8.pt"
+MODEL_PATH_V3 = "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1_wrelu/model_epoch8.pt"
 BATCH_SIZE = 1
 DEVICE = "cuda:0"
 px = 1 / plt.rcParams['figure.dpi']
@@ -105,13 +106,13 @@ def perform_tests(loader, models, multiencoders, sample_ids=None):
 def setup():
     test_loader = get_dataset(DATA_PATH)
 
-    unet_v1 = UNET_FANNED(in_channels=4, out_channels=1)
+    unet_v1 = UNET(in_channels=4, out_channels=1)
     unet_v1.load_state_dict(torch.load(MODEL_PATH_V1, map_location='cpu')['model_state_dict'])
 
-    unet_v2 = UNET_FANNED(in_channels=4, out_channels=1)
+    unet_v2 = UNET(in_channels=4, out_channels=1)
     unet_v2.load_state_dict(torch.load(MODEL_PATH_V2, map_location='cpu')['model_state_dict'])
 
-    unet_v3 = UNET_FANNED(in_channels=4, out_channels=1)
+    unet_v3 = UNET(in_channels=4, out_channels=1)
     unet_v3.load_state_dict(torch.load(MODEL_PATH_V3, map_location='cpu')['model_state_dict'])
 
     perform_tests(test_loader, [unet_v1, unet_v2, unet_v3], [False, False, False], [1, 2, 3, 4, 5, 6, 7, 8])

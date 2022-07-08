@@ -143,7 +143,7 @@ def valid(epoch, loader, loss_fn, model, mse, ssim):
 def run(num_epochs, lr, epoch_to_start_from):
     torch.cuda.empty_cache()
 
-    model = UNET(in_channels=4, out_channels=1).to(device)
+    model = UNET_FANNED(in_channels=4, out_channels=1).to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=5e-4)
     loss_fn = nn.L1Loss()
     scaler = torch.cuda.amp.GradScaler()
@@ -168,7 +168,7 @@ def run(num_epochs, lr, epoch_to_start_from):
     overall_training_zncc = []
     overall_validation_zncc = []
 
-    path = "{}_{}_{}_{}_v1_wrelu/".format(
+    path = "{}_{}_{}_{}_v1/".format(
         "results",
         str(loss_fn.__class__.__name__),
         str(optimizer.__class__.__name__),
@@ -202,8 +202,8 @@ def run(num_epochs, lr, epoch_to_start_from):
 
     model.to(device)
 
-    train_loader = get_loader(path_train, batch_size, num_workers, pin_memory, amount=7000)
-    validation_loader = get_loader(path_validation, batch_size, num_workers, pin_memory, amount=2000)
+    train_loader = get_loader(path_train, batch_size, num_workers, pin_memory, amount=0)
+    validation_loader = get_loader(path_validation, batch_size, num_workers, pin_memory, amount=0)
 
     for epoch in range(epochs_done + 1, num_epochs + 1):
         training_loss, training_mae, training_mse, training_ssim, training_zncc = train(epoch, train_loader, loss_fn,
@@ -291,4 +291,4 @@ def run(num_epochs, lr, epoch_to_start_from):
 
 
 if __name__ == '__main__':
-    run(num_epochs=100, lr=3e-04, epoch_to_start_from=0)
+    run(num_epochs=100, lr=5e-06, epoch_to_start_from=0)

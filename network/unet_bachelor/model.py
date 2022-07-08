@@ -21,7 +21,7 @@ class UNET(nn.Module):
         self.unpool_correctances = nn.ModuleList()
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
 
-        self.final = nn.Conv2d(features[2], out_channels, kernel_size=(1, 1))
+        self.final = nn.Conv2d(features[1], out_channels, kernel_size=(1, 1))
 
         for i in range(len(features) - 2):
             self.down_convs.append(DoubleConv(features[i], features[i + 1]))
@@ -31,11 +31,7 @@ class UNET(nn.Module):
         features = features[::-1]
 
         for i in range(len(features) - 2):
-            if i != (len(features) - 3):
-                self.up_convs.append(DoubleConv(features[i], features[i + 1]))
-            else:
-                self.up_convs.append(DoubleConv(features[i], features[i]))
-
+            self.up_convs.append(DoubleConv(features[i], features[i + 1]))
             self.up_trans.append(UpConv(features[i], features[i + 1]))
 
     def forward(self, x):
@@ -52,8 +48,6 @@ class UNET(nn.Module):
 
         for i in range(len(self.up_convs)):
             x = self.up_trans[i](x)
-
-            skip_connections[i] = tf.center_crop(skip_connections[i], output_size=x.shape[2:])
             go = torch.cat((x, skip_connections[i]), dim=1)
             x = self.up_convs[i](go)
 
