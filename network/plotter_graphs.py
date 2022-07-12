@@ -83,17 +83,17 @@ def plot(path):
         plt.figure()
         plt.plot(training_ssim, 'b', label="Training SSIM")
         plt.plot(validation_ssim, 'orange', label="Validation SSIM")
-        plt.legend(loc="upper right", fontsize=18)
+        plt.legend(loc="lower right", fontsize=18)
         plt.tick_params(labelsize=18)
         plt.show()
 
         plt.figure()
         plt.plot(training_zncc, 'b', label="Training ZNCC")
         plt.plot(validation_zncc, 'orange', label="Validation ZNCC")
-        plt.legend(loc="upper right", fontsize=18)
+        plt.legend(loc="lower right", fontsize=18)
         plt.tick_params(labelsize=18)
         plt.show()
 
 
 if __name__ == '__main__':
-    plot("/home/fkt48uj/nrw/results_L1Loss_RMSprop_UNET_FANNED_v1/metrics.csv")
+    plot("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/metrics.csv")

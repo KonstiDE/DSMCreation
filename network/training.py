@@ -168,7 +168,7 @@ def run(num_epochs, lr, epoch_to_start_from):
     overall_training_zncc = []
     overall_validation_zncc = []
 
-    path = "{}_{}_{}_{}_v1/".format(
+    path = "{}_{}_{}_{}_v1_noendsave/".format(
         "results",
         str(loss_fn.__class__.__name__),
         str(optimizer.__class__.__name__),
@@ -272,22 +272,6 @@ def run(num_epochs, lr, epoch_to_start_from):
         if early_stopping.early_stop:
             print("Early stopping")
             break
-
-    metrics = np.array([
-        overall_training_loss,
-        overall_validation_loss,
-        overall_training_mae,
-        overall_training_mse,
-        overall_training_ssim,
-        overall_training_zncc,
-        overall_validation_mae,
-        overall_validation_mse,
-        overall_validation_ssim,
-        overall_validation_zncc,
-    ], dtype='object')
-
-    savetxt(path + "metrics.csv", metrics, delimiter=',',
-            header="tloss,vloss,tmae,tmse,tzncc,tssim,vmae,vmse,vssim,vzncc", fmt='%s')
 
 
 if __name__ == '__main__':
