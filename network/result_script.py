@@ -3,10 +3,13 @@ import os.path
 import matplotlib.pyplot as plt
 import torch
 import sklearn.metrics as skl
+from tqdm.auto import tqdm as prog
 
-from network.provider.dataset_provider import (
+from provider.dataset_provider import (
     get_dataset
 )
+import provider.pytorchtools as pytorchtools
+
 from unet_fanned.model import UNET_FANNED
 
 import torchvision.transforms.functional as tf
@@ -27,12 +30,14 @@ def test(amount, model_path, test_data_path):
 
     walking_mae = 0
 
-    for (data, target, src_path) in loader:
+    loop = prog(loader)
+
+    for (data, target, src_path) in loop:
         if 0 < amount <= c:
             break
 
         data = data.unsqueeze(0).to("cuda:0")
-        prediction = unet(data, data)
+        prediction = unet(data)
 
         target = target.unsqueeze(0).unsqueeze(0)
         target = tf.resize(target, size=prediction.shape[2:])
@@ -40,30 +45,26 @@ def test(amount, model_path, test_data_path):
         target = target.squeeze(0).squeeze(0).detach().cpu()
         prediction = prediction.squeeze(0).squeeze(0).detach().cpu()
 
-        target = tf.center_crop(target, output_size=[500, 500])
-        prediction = tf.center_crop(prediction, output_size=[500, 500])
-
         mae = skl.mean_absolute_error(target, prediction)
 
         data = data.squeeze(0)[0].cpu()
-        data = tf.center_crop(data, output_size=[500, 500])
 
         fig, axs = plt.subplots(1, 3)
 
         im = axs[0].imshow(data, cmap="Reds_r")
         axs[0].set_xticklabels([])
         axs[0].set_yticklabels([])
-        #plt.colorbar(im, ax=axs[0])
+        # plt.colorbar(im, ax=axs[0])
 
         im = axs[1].imshow(prediction, cmap="viridis")
         axs[1].set_xticklabels([])
         axs[1].set_yticklabels([])
-        #plt.colorbar(im, ax=axs[1])
+        plt.colorbar(im, ax=axs[1])
 
         im = axs[2].imshow(target, cmap="viridis")
         axs[2].set_xticklabels([])
         axs[2].set_yticklabels([])
-        #plt.colorbar(im, ax=axs[2])
+        plt.colorbar(im, ax=axs[2])
 
         fig.suptitle("MAE: " + str(mae))
 
@@ -73,7 +74,7 @@ def test(amount, model_path, test_data_path):
         c += 1
         walking_mae += mae
 
-    print(walking_mae / c)
+        loop.set_postfix(info="MAE={:.2f}".format(walking_mae / c))
 
     file = open("results/mae.txt", "w+")
     file.write(str(walking_mae / c))
@@ -83,6 +84,6 @@ def test(amount, model_path, test_data_path):
 if __name__ == '__main__':
     test(
         0,
-        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_nearn_500_512_attention/model_epoch7.pt",
+        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/model_epoch20.pt",
         "/home/fkt48uj/nrw/dataset/data/test/"
     )
