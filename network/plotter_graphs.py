@@ -3,7 +3,7 @@ import csv
 import matplotlib.pyplot as plt
 
 
-def plot(path):
+def plot(path, epochs):
     metrics = {}
 
     training_loss = []

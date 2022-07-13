@@ -57,5 +57,5 @@ def get_loader(npz_dir, batch_size, num_workers=2, pin_memory=True, shuffle=True
     return train_loader
 
 
-def get_dataset(npz_dir):
-    return NrwDataSet(npz_dir, amount=0)
+def get_dataset(npz_dir, amount):
+    return NrwDataSet(npz_dir, amount=amount)
