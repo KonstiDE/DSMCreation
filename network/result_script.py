@@ -22,7 +22,7 @@ def test(amount, model_path, test_data_path):
     unet.eval()
     torch.no_grad()
 
-    loader = get_dataset(test_data_path)
+    loader = get_dataset(test_data_path, amount)
     c = 0
 
     if not os.path.exists("results"):

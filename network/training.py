@@ -44,7 +44,6 @@ from network.metrics.zncc import (
 )
 
 from unet_fanned.model import UNET_FANNED
-from unet_bachelor.model import UNET
 
 
 def train(epoch, loader, loss_fn, optimizer, scaler, model, mse, ssim):
@@ -63,7 +62,7 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model, mse, ssim):
         optimizer.zero_grad(set_to_none=True)
 
         data = data.cuda()
-        data = model(data)
+        data = model(data, data)
 
         data[data < 0] = 0
         target[target < 0] = 0
@@ -111,7 +110,7 @@ def valid(epoch, loader, loss_fn, model, mse, ssim):
 
     for batch_index, (data, target, dataframepath) in enumerate(loop):
         data = data.to(device)
-        data = model(data)
+        data = model(data, data)
 
         data[data < 0] = 0
         target[target < 0] = 0

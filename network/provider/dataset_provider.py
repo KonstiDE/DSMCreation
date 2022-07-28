@@ -6,13 +6,14 @@ import torch
 
 class NrwDataSet(Dataset):
     def __init__(self, npz_dir, amount):
-        outlier_file = open("/home/fkt48uj/nrw/network/outliers.TXT")
+        outlier_file = open("/home/fkt48uj/nrw/outliers_checked_stayed.txt")
         outliers = [os.path.basename(line.rstrip()) for line in outlier_file]
 
         c = 0
         self.dataset = []
         for file in os.listdir(npz_dir):
             if not outliers.__contains__(file):
+
                 self.dataset.append(os.path.join(npz_dir, file))
 
                 if amount > 0:
@@ -56,5 +57,5 @@ def get_loader(npz_dir, batch_size, num_workers=2, pin_memory=True, shuffle=True
     return train_loader
 
 
-def get_dataset(npz_dir):
-    return NrwDataSet(npz_dir, amount=0)
+def get_dataset(npz_dir, amount):
+    return NrwDataSet(npz_dir, amount=amount)
