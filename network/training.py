@@ -44,7 +44,6 @@ from network.metrics.zncc import (
 )
 
 from unet_fanned.model import UNET_FANNED
-from unet_bachelor.model import UNET
 
 
 def train(epoch, loader, loss_fn, optimizer, scaler, model, mse, ssim):
