@@ -1,9 +1,9 @@
 import os
-
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import sklearn.metrics as skl
+import skimage.metrics as ski
 from tqdm.auto import tqdm as prog
 import matplotlib.pyplot as plt
 from numpy import savetxt
@@ -18,7 +18,6 @@ from torchmetrics.image import StructuralSimilarityIndexMeasure
 sys.path.append(os.getcwd())
 
 import shutup
-
 shutup.please()
 
 from network.provider.dataset_provider import (
@@ -40,7 +39,9 @@ from network.provider.pytorchtools import (
     EarlyStopping
 )
 
-from metrics.zncc import zncc
+from network.metrics.zncc import (
+    zncc
+)
 
 from unet_fanned.model import UNET_FANNED
 
@@ -61,7 +62,7 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model, mse, ssim):
         optimizer.zero_grad(set_to_none=True)
 
         data = data.cuda()
-        data = model(data, data)
+        data = model(data)
 
         data[data < 0] = 0
         target[target < 0] = 0
@@ -77,6 +78,8 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model, mse, ssim):
             scaler.update()
 
         loss_value = loss.item()
+
+        target = tf.center_crop(target, output_size=data.shape[2:])
 
         running_mae.append(loss_value)
         running_mse.append(mse(data, target).item())
@@ -107,7 +110,7 @@ def valid(epoch, loader, loss_fn, model, mse, ssim):
 
     for batch_index, (data, target, dataframepath) in enumerate(loop):
         data = data.to(device)
-        data = model(data, data)
+        data = model(data)
 
         data[data < 0] = 0
         target[target < 0] = 0
@@ -137,6 +140,8 @@ def valid(epoch, loader, loss_fn, model, mse, ssim):
 
 
 def run(num_epochs, lr, epoch_to_start_from):
+    torch.cuda.empty_cache()
+
     model = UNET_FANNED(in_channels=4, out_channels=1).to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=5e-4)
     loss_fn = nn.L1Loss()
@@ -162,7 +167,7 @@ def run(num_epochs, lr, epoch_to_start_from):
     overall_training_zncc = []
     overall_validation_zncc = []
 
-    path = "{}_{}_{}_{}_v3_wrelu/".format(
+    path = "{}_{}_{}_{}_v1/".format(
         "results",
         str(loss_fn.__class__.__name__),
         str(optimizer.__class__.__name__),
@@ -194,8 +199,10 @@ def run(num_epochs, lr, epoch_to_start_from):
         else:
             raise Exception("No model_epoch" + str(epoch_to_start_from) + ".pt found")
 
-    train_loader = get_loader(path_train, batch_size, num_workers, pin_memory, amount=7000)
-    validation_loader = get_loader(path_validation, batch_size, num_workers, pin_memory, amount=2000)
+    model.to(device)
+
+    train_loader = get_loader(path_train, batch_size, num_workers, pin_memory, amount=0)
+    validation_loader = get_loader(path_validation, batch_size, num_workers, pin_memory, amount=0)
 
     for epoch in range(epochs_done + 1, num_epochs + 1):
         training_loss, training_mae, training_mse, training_ssim, training_zncc = train(epoch, train_loader, loss_fn,
@@ -265,28 +272,6 @@ def run(num_epochs, lr, epoch_to_start_from):
             print("Early stopping")
             break
 
-    plt.figure()
-    plt.plot(overall_training_loss, 'b', label="Loss training")
-    plt.plot(overall_validation_loss, 'r', label="Loss validation")
-    plt.savefig(path + "losses.png")
-    plt.show()
-
-    metrics = np.array([
-        overall_training_loss,
-        overall_validation_loss,
-        overall_training_mae,
-        overall_training_mse,
-        overall_training_ssim,
-        overall_training_zncc,
-        overall_validation_mae,
-        overall_validation_mse,
-        overall_validation_ssim,
-        overall_validation_zncc,
-    ], dtype='object')
-
-    savetxt(path + "metrics.csv", metrics, delimiter=',',
-            header="tloss,vloss,tmae,tmse,tzncc,tssim,vmae,vmse,vssim,vzncc", fmt='%s')
-
 
 if __name__ == '__main__':
-    run(num_epochs=100, lr=3e-04, epoch_to_start_from=1)
+    run(num_epochs=100, lr=5e-06, epoch_to_start_from=0)
