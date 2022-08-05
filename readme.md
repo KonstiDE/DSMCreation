@@ -41,7 +41,7 @@ The matching step later on needs to match the position of each nDsm tile to a se
   
 - Step 3: Executing scripts\
 There are a couple of scripts needed to manipulate the dataset to get it ready
-  for the neural network which takes the data in. At first configure the `dataset_helper.py` in 
+  for the neural network which takes the data in. Please execute every script from the base directory where your `dataset` and `network` folder is located. At first configure the `dataset_helper.py` in 
   `dataset → helper → helper.py`. The variables descriptions are commented in the file itself.
  Next, execute the walkdom script in `dataset → walkdom.py`. It's going to cut the ndsm tiles into smaller
  pieces and transforms the coordinate system to the one that sentinel data uses. After that, execute the `matching.py` script in 
