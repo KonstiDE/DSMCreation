@@ -54,17 +54,17 @@ def load_graphs_from_checkpoint(model_path, epoch):
         plt.tick_params(labelsize=18)
         plt.show()
 
-        print('MAE train: ' + s.mean(overall_training_mae))
-        print('MAE valid: ' + s.mean(overall_validation_mae))
+        print('MAE train: ' + str(s.mean(overall_training_mae)))
+        print('MAE valid: ' + str(s.mean(overall_validation_mae)))
 
-        print('MSE train: ' + s.mean(overall_training_mse))
-        print('MSE valid: ' + s.mean(overall_validation_mse))
+        print('MSE train: ' + str(s.mean(overall_training_mse)))
+        print('MSE valid: ' + str(s.mean(overall_validation_mse)))
 
-        print('SSIM train: ' + s.mean(overall_training_ssim))
-        print('SSIM valid: ' + s.mean(overall_validation_ssim))
+        print('SSIM train: ' + str(s.mean(overall_training_ssim)))
+        print('SSIM valid: ' + str(s.mean(overall_validation_ssim)))
 
-        print('ZNCC train: ' + s.mean(overall_training_zncc))
-        print('ZNCC valid: ' + s.mean(overall_validation_zncc))
+        print('ZNCC train: ' + str(s.mean(overall_training_zncc)))
+        print('ZNCC valid: ' + str(s.mean(overall_validation_zncc)))
 
     else:
         print("No model found within {} and epoch {}".format(
