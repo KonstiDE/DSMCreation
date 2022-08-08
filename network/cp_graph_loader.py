@@ -1,6 +1,6 @@
 import os
 import torch
-import numpy as np
+import statistics as s
 
 import matplotlib.pyplot as plt
 
@@ -54,6 +54,18 @@ def load_graphs_from_checkpoint(model_path, epoch):
         plt.tick_params(labelsize=18)
         plt.show()
 
+        print('MAE train: ' + str(s.mean(overall_training_mae)))
+        print('MAE valid: ' + str(s.mean(overall_validation_mae)))
+
+        print('MSE train: ' + str(s.mean(overall_training_mse)))
+        print('MSE valid: ' + str(s.mean(overall_validation_mse)))
+
+        print('SSIM train: ' + str(s.mean(overall_training_ssim)))
+        print('SSIM valid: ' + str(s.mean(overall_validation_ssim)))
+
+        print('ZNCC train: ' + str(s.mean(overall_training_zncc)))
+        print('ZNCC valid: ' + str(s.mean(overall_validation_zncc)))
+
     else:
         print("No model found within {} and epoch {}".format(
             model_path,
@@ -62,4 +74,4 @@ def load_graphs_from_checkpoint(model_path, epoch):
 
 
 if __name__ == '__main__':
-    load_graphs_from_checkpoint("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/", 20)
+    load_graphs_from_checkpoint("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v3/", 1)
