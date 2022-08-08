@@ -62,7 +62,7 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model, mse, ssim):
         optimizer.zero_grad(set_to_none=True)
 
         data = data.cuda()
-        data = model(data)
+        data = model(data, data)
 
         data[data < 0] = 0
         target[target < 0] = 0
@@ -78,8 +78,6 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model, mse, ssim):
             scaler.update()
 
         loss_value = loss.item()
-
-        target = tf.center_crop(target, output_size=data.shape[2:])
 
         running_mae.append(loss_value)
         running_mse.append(mse(data, target).item())
@@ -110,7 +108,7 @@ def valid(epoch, loader, loss_fn, model, mse, ssim):
 
     for batch_index, (data, target, dataframepath) in enumerate(loop):
         data = data.to(device)
-        data = model(data)
+        data = model(data, data)
 
         data[data < 0] = 0
         target[target < 0] = 0
