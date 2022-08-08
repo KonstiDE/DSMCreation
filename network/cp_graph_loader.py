@@ -61,4 +61,4 @@ def load_graphs_from_checkpoint(model_path, epoch):
 
 
 if __name__ == '__main__':
-    load_graphs_from_checkpoint("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v2/", 19)
+    load_graphs_from_checkpoint("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v2/", 38)
