@@ -44,8 +44,8 @@ def test(amount, model_path, test_data_path):
     loader = get_dataset(test_data_path, amount)
     c = 0
 
-    if not os.path.exists("results"):
-        os.mkdir("results")
+    if not os.path.exists("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v2/results"):
+        os.mkdir("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v2/results")
 
     mae = MeanAbsoluteError().to("cuda:0")
     mse = MeanSquaredError().to("cuda:0")
@@ -66,6 +66,7 @@ def test(amount, model_path, test_data_path):
         prediction[prediction < 0] = 0
 
         target = target.unsqueeze(0).unsqueeze(0).to("cuda:0")
+        target[target < 0] = 0
 
         running_mae.append(mae(prediction, target).item())
         running_mse.append(mse(prediction, target).item())
@@ -118,14 +119,14 @@ def test(amount, model_path, test_data_path):
 
         walking_mae += running_mae[-1]
 
-        plt.savefig("results/" + os.path.basename(src_path) + ".png")
+        plt.savefig("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v2/results/" + os.path.basename(src_path) + ".png")
         plt.close(fig)
 
         c += 1
 
         loop.set_postfix(info="MAE={:.2f}".format(walking_mae / c))
 
-    file = open("results/mae.txt", "w+")
+    file = open("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v2/results/mae.txt", "w+")
     file.write("MAE: {}, MSE: {}, SSIM: {}, ZNCC: {}".format(
         str(s.mean(running_mae)),
         str(s.mean(running_mse)),
@@ -138,6 +139,6 @@ def test(amount, model_path, test_data_path):
 if __name__ == '__main__':
     test(
         0,
-        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/model_epoch20.pt",
+        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v2/model_epoch38.pt",
         "/home/fkt48uj/nrw/dataset/data/test/"
     )
