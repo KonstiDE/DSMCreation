@@ -30,13 +30,13 @@ class NrwDataSet(Dataset):
         dataframepath = self.dataset[index]
         dataframe = np.load(dataframepath, allow_pickle=True)
 
-        blue = dataframe["arr_" + str(0)]
-        green = dataframe["arr_" + str(1)]
-        red = dataframe["arr_" + str(2)]
-        nir = dataframe["arr_" + str(3)]
-        dom = dataframe["arr_" + str(4)]
+        red = dataframe["red"]
+        green = dataframe["green"]
+        blue = dataframe["blue"]
+        nir = dataframe["nir"]
+        dom = dataframe["dom"]
 
-        sentinel = np.stack((red, green, blue, nir))
+        sentinel = np.stack((red, green, blue, nir, dom))
 
         sentinel = torch.Tensor(sentinel)
         dsm = torch.Tensor(dom)

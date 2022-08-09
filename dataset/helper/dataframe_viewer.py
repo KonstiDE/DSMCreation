@@ -10,11 +10,11 @@ def view_data_frame(path):
     if path.endswith(".npz"):
         data_frame = np.load(path, allow_pickle=True)
 
-        blue = data_frame["arr_" + str(0)]
-        green = data_frame["arr_" + str(1)]
-        red = data_frame["arr_" + str(2)]
-        nir = data_frame["arr_" + str(3)]
-        dom = data_frame["arr_" + str(4)]
+        blue = data_frame["red"]
+        green = data_frame["green"]
+        red = data_frame["blue"]
+        nir = data_frame["nir"]
+        dom = data_frame["dom"]
 
         print(blue.shape)
         print(green.shape)
@@ -52,6 +52,6 @@ def view_data_frame(path):
 
 
 if __name__ == '__main__':
-    path = "/home/fkt48uj/nrw/dataset/data/test/"
+    path = "/home/fkt48uj/nrw/dataset/output/"
 
-    view_data_frame(path + "ndom50_32403_5800_1_nw_2019_4~SENTINEL2X_20190615-000000-000_L3A_T32ULC_C_V1-2.npz")
+    view_data_frame(path + "ndom50_32300_5600_1_nw_2019_13~SENTINEL2X_20190615-000000-000_L3A_T32ULB_C_V1-2.npz")

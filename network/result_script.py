@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from tqdm.auto import tqdm as prog
+from PIL import Image
 
 from provider.dataset_provider import (
     get_dataset
@@ -88,17 +89,20 @@ def test(amount, model_path, test_data_path):
         prediction = prediction.detach().cpu()
         target = target.detach().cpu()
 
-        data = data.squeeze(0).cpu()
-        red = normalize(data[0]) * 255
-        # red *= (1 / red.max()) * 255
-        green = normalize(data[1]) * 255
-        # green *= (1 / green.max()) * 255
-        blue = normalize(data[2]) * 255
-        # blue *= (1 / blue.max()) * 255
+        data = data.squeeze(0).cpu().numpy()
+        red = data[3]
+        red_normalized = (red * (255 / red.max())).astype(np.uint8)
+        green = data[0]
+        green_normalized = (green * (255 / green.max())).astype(np.uint8)
+        blue = data[2]
+        blue_normalized = (blue * (255 / blue.max())).astype(np.uint8)
 
-        beauty = (np.dstack((red, green, blue))).astype(dtype='int')
+        beauty = np.dstack((red_normalized, green_normalized, blue_normalized))
 
-        print(beauty)
+        # beauty = Image.fromarray(beauty.astype('uint8'), mode='RGB')
+
+        plt.imshow(beauty)
+        plt.show()
 
         fig, axs = plt.subplots(1, 3, figsize=(21, 5))
 
@@ -122,13 +126,13 @@ def test(amount, model_path, test_data_path):
             running_mse[-1],
             running_ssim[-1],
             running_zncc[-1]
-        ), fontsize=20)
+        ), fontsize=24)
+        plt.close(fig)
 
         walking_mae += running_mae[-1]
 
         # plt.savefig("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/results/" + os.path.basename(src_path) + ".png")
         # plt.close(fig)
-        plt.show()
 
         c += 1
 
@@ -146,7 +150,8 @@ def test(amount, model_path, test_data_path):
 
 if __name__ == '__main__':
     test(
-        3,
+        7,
         "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/model_epoch15.pt",
         "/home/fkt48uj/nrw/dataset/data/test/"
     )
+
