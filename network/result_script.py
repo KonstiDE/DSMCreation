@@ -33,6 +33,11 @@ import shutup
 shutup.please()
 
 
+def normalize(array):
+    array_min, array_max = array.min(), array.max()
+    return (array - array_min) / (array_max - array_min)
+
+
 def test(amount, model_path, test_data_path):
     unet = UNET_FANNED(in_channels=4, out_channels=1)
     unet.load_state_dict(torch.load(model_path)['model_state_dict'])
@@ -84,16 +89,18 @@ def test(amount, model_path, test_data_path):
         target = target.detach().cpu()
 
         data = data.squeeze(0).cpu()
-        red = data[0]
-        red *= 1 / red.max()
-        green = data[1]
-        green *= 1 / green.max()
-        blue = data[2]
-        blue *= 1 / blue.max()
+        red = normalize(data[0]) * 255
+        # red *= (1 / red.max()) * 255
+        green = normalize(data[1]) * 255
+        # green *= (1 / green.max()) * 255
+        blue = normalize(data[2]) * 255
+        # blue *= (1 / blue.max()) * 255
 
-        beauty = np.dstack((blue, green, red))
+        beauty = (np.dstack((red, green, blue))).astype(dtype='int')
 
-        fig, axs = plt.subplots(1, 3)
+        print(beauty)
+
+        fig, axs = plt.subplots(1, 3, figsize=(21, 5))
 
         im = axs[0].imshow(beauty)
         axs[0].set_xticklabels([])
@@ -110,21 +117,22 @@ def test(amount, model_path, test_data_path):
         axs[2].set_yticklabels([])
         plt.colorbar(im, ax=axs[2])
 
-        fig.suptitle("MAE: {}, MSE: {},\nSSIM: {}, ZNCC: {}".format(
-            str(running_mae[-1]),
-            str(running_mse[-1]),
-            str(running_ssim[-1]),
-            str(running_zncc[-1])
-        ))
+        fig.suptitle("MAE: {:.3f}, MSE: {:.3f}, SSIM: {:.3f}, ZNCC: {:.3f}".format(
+            running_mae[-1],
+            running_mse[-1],
+            running_ssim[-1],
+            running_zncc[-1]
+        ), fontsize=20)
 
         walking_mae += running_mae[-1]
 
-        plt.savefig("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/results/" + os.path.basename(src_path) + ".png")
-        plt.close(fig)
+        # plt.savefig("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/results/" + os.path.basename(src_path) + ".png")
+        # plt.close(fig)
+        plt.show()
 
         c += 1
 
-        loop.set_postfix(info="MAE={:.2f}".format(walking_mae / c))
+        loop.set_postfix(info="MAE={:.4f}".format(walking_mae / c))
 
     file = open("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/results/mae.txt", "w+")
     file.write("MAE: {}, MSE: {}, SSIM: {}, ZNCC: {}".format(
@@ -138,7 +146,7 @@ def test(amount, model_path, test_data_path):
 
 if __name__ == '__main__':
     test(
-        0,
-        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/model_epoch20.pt",
+        3,
+        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/model_epoch15.pt",
         "/home/fkt48uj/nrw/dataset/data/test/"
     )

@@ -11,7 +11,6 @@ import torch.nn as nn
 from provider.dataset_provider import get_dataset
 
 from unet_fanned.model import UNET_FANNED
-from unet_bachelor.model import UNET
 
 warnings.filterwarnings("ignore")
 
