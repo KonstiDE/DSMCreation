@@ -27,7 +27,6 @@ from dataset.modifier.extender import (
 
 
 def build_data_frame(sentinel_option_folder, tile):
-    # Blue, Infrared, Green, Red
     data_frame = {}
 
     for file in os.listdir(sentinel_option_folder):
