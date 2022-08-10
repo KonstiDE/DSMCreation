@@ -90,8 +90,15 @@ def createMatching():
 
                                                 data_frame = build_data_frame(sentinel_option, tile)
 
-                                                np.savez_compressed(os.path.join(output_path, filename + "_" + str(c) + "~" + directory + ".npz"), *data_frame)
-                                                print("Passed positional and time matching for " + filename + "_" + str(c) + " with index " + str(c) + ". Trying to build up " + filename + "_" + str(c) + "~" + directory + ".npz now")
+                                                np.savez_compressed(
+                                                    os.path.join(output_path, filename + "_" + str(c) + "~" + directory + ".npz"),
+                                                    red=data_frame["red"],
+                                                    green=data_frame["green"],
+                                                    blue=data_frame["blue"],
+                                                    nir=data_frame["nir"],
+                                                    dom=data_frame["dom"]
+                                                )
+                                                print("Passed positional and time matching for " + filename + "_" + str(c) + " with index " + str(c) + ". Building up " + filename + "_" + str(c) + "~" + directory + ".npz now")
 
                                                 data_set_counter += 1
                                                 found_sentinel_match = True
@@ -108,7 +115,7 @@ def createMatching():
                         else:
                             print("Tile " + filename + " not downloaded or not in " + dom_path + " or not transformed!")
                     else:
-                        print("Dataframe for " + filename + "_" + str(c + 1) + " already exists")
+                        print("Dataframe for " + filename + "_" + str(c) + " already exists")
 
     print("Created " + str(data_set_counter) + " data_sets")
     print("Thereby, matched " + str(time_counter) + " position_wise, but not time wise")
