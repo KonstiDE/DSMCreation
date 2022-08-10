@@ -36,7 +36,7 @@ class NrwDataSet(Dataset):
         nir = dataframe["nir"]
         dom = dataframe["dom"]
 
-        sentinel = np.stack((red, green, blue, nir, dom))
+        sentinel = np.stack((red, green, blue, nir))
 
         sentinel = torch.Tensor(sentinel)
         dsm = torch.Tensor(dom)
