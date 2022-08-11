@@ -28,25 +28,37 @@ def check():
     index = 0
     for line in file.readlines():
 
-        if new_lines_stayed.__contains__(line) or new_lines_sorted_out.__contains__(line):
+        name = line.replace("\n", "")
+
+        if new_lines_stayed.__contains__(name) or new_lines_sorted_out.__contains__(name):
             continue
 
-        data_frame = np.load(line.replace("\n", ""), allow_pickle=True)
+        data_frame = np.load(name, allow_pickle=True)
 
-        blue = data_frame["arr_" + str(0)]
-        green = data_frame["arr_" + str(1)]
-        red = data_frame["arr_" + str(2)]
-        nir = data_frame["arr_" + str(3)]
-        dom = data_frame["arr_" + str(4)]
+        red = data_frame["red"]
+        green = data_frame["green"]
+        blue = data_frame["blue"]
+        nir = data_frame["nir"]
+        dom = data_frame["dom"]
 
         index += 1
 
-        if not np.all(blue == 0) and not np.all(green == 0) and not np.all(red == 0) and not np.all(nir == 0) and\
-                not(abs(np.min(dom) - np.max(dom) > 400)) and not np.all(dom < 0) and not np.any(dom < -1000) and\
-                blue.shape[0] == blue.shape[1] and green.shape[0] == green.shape[1] and\
-                red.shape[0] == red.shape[1] and nir.shape[0] == nir.shape[1] and\
-                dom.shape[0] == dom.shape[1]:
+        completely_broken = False
 
+        if blue.shape[0] != blue.shape[1] or green.shape[0] != green.shape[1] or\
+                red.shape[0] != red.shape[1] or nir.shape[0] != nir.shape[1] or \
+                dom.shape[0] != dom.shape[1]:
+            completely_broken = True
+        elif np.sum([np.all(blue <= 0), np.all(green <= 0), np.all(red <= 0), np.all(nir <= 0), np.all(dom <= 0)]) >= 3:
+            completely_broken = True
+        elif np.max(dom < 0):
+            completely_broken = True
+        elif np.min(dom) > 100:
+            completely_broken = True
+        elif np.sum(dom < -50) / (len(dom) * len(dom)) > 0.4:
+            completely_broken = True
+
+        if not completely_broken:
             print(index)
             print(line.replace("\n", ""))
 
@@ -93,6 +105,7 @@ def check():
 
     new_file_stay.close()
     new_file_out.close()
+    file.close()
 
 
 if __name__ == '__main__':

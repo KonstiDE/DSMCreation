@@ -18,11 +18,11 @@ def detection(paths):
 
             data_frame = np.load(os.path.join(path, file), allow_pickle=True)
 
-            blue = data_frame["arr_" + str(0)]
-            green = data_frame["arr_" + str(1)]
-            red = data_frame["arr_" + str(2)]
-            nir = data_frame["arr_" + str(3)]
-            dom = data_frame["arr_" + str(4)]
+            red = data_frame["red"]
+            green = data_frame["green"]
+            blue = data_frame["blue"]
+            nir = data_frame["nir"]
+            dom = data_frame["dom"]
 
             isOk = True
 
@@ -59,3 +59,4 @@ if __name__ == '__main__':
             "/home/fkt48uj/nrw/dataset/data/test/"
         ]
     )
+

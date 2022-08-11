@@ -68,7 +68,6 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model, mse, ssim):
         target[target < 0] = 0
 
         target = target.unsqueeze(1).to(device)
-        target = tf.resize(target, size=data.shape[2:])
 
         with torch.cuda.amp.autocast():
             loss = loss_fn(data, target)
@@ -78,8 +77,6 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model, mse, ssim):
             scaler.update()
 
         loss_value = loss.item()
-
-        target = tf.center_crop(target, output_size=data.shape[2:])
 
         running_mae.append(loss_value)
         running_mse.append(mse(data, target).item())
@@ -116,7 +113,6 @@ def valid(epoch, loader, loss_fn, model, mse, ssim):
         target[target < 0] = 0
 
         target = target.unsqueeze(1).to(device)
-        target = tf.resize(target, size=data.shape[2:])
 
         with torch.no_grad():
             loss = loss_fn(data, target)
