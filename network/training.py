@@ -69,6 +69,9 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model, mse, ssim):
 
         target = target.unsqueeze(1).to(device)
 
+        data = tf.center_crop(data, [cutting_length, cutting_length])
+        target = tf.center_crop(target, [cutting_length, cutting_length])
+
         with torch.cuda.amp.autocast():
             loss = loss_fn(data, target)
 
@@ -113,6 +116,9 @@ def valid(epoch, loader, loss_fn, model, mse, ssim):
         target[target < 0] = 0
 
         target = target.unsqueeze(1).to(device)
+
+        data = tf.center_crop(data, [cutting_length, cutting_length])
+        target = tf.center_crop(target, [cutting_length, cutting_length])
 
         with torch.no_grad():
             loss = loss_fn(data, target)
