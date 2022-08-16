@@ -7,6 +7,10 @@ import torch
 from tqdm.auto import tqdm as prog
 from PIL import Image
 
+
+from dataset.helper.dataset_helper import (
+    cutting_length
+)
 from provider.dataset_provider import (
     get_dataset
 )
@@ -68,11 +72,18 @@ def test(amount, model_path, test_data_path):
 
     for (data, target, src_path) in loop:
         data = data.unsqueeze(0).to("cuda:0")
+
+        data[data < 0] = 0
+        target[target < 0] = 0
+
         prediction = unet(data)
+
         prediction[prediction < 0] = 0
 
         target = target.unsqueeze(0).unsqueeze(0).to("cuda:0")
-        target[target < 0] = 0
+
+        prediction = tf.center_crop(prediction, [cutting_length, cutting_length])
+        target = tf.center_crop(target, [cutting_length, cutting_length])
 
         running_mae.append(mae(prediction, target).item())
         running_mse.append(mse(prediction, target).item())
@@ -83,26 +94,18 @@ def test(amount, model_path, test_data_path):
         mse.reset()
         ssim.reset()
 
-        prediction = prediction.squeeze(0).squeeze(0)
-        target = target.squeeze(0).squeeze(0)
-
-        prediction = prediction.detach().cpu()
-        target = target.detach().cpu()
+        prediction = prediction.squeeze(0).squeeze(0).detach().cpu()
+        target = target.squeeze(0).squeeze(0).detach().cpu()
 
         data = data.squeeze(0).cpu().numpy()
-        red = data[3]
+        red = data[0]
         red_normalized = (red * (255 / red.max())).astype(np.uint8)
-        green = data[0]
+        green = data[1]
         green_normalized = (green * (255 / green.max())).astype(np.uint8)
         blue = data[2]
         blue_normalized = (blue * (255 / blue.max())).astype(np.uint8)
 
         beauty = np.dstack((red_normalized, green_normalized, blue_normalized))
-
-        # beauty = Image.fromarray(beauty.astype('uint8'), mode='RGB')
-
-        plt.imshow(beauty)
-        plt.show()
 
         fig, axs = plt.subplots(1, 3, figsize=(21, 5))
 
@@ -127,12 +130,11 @@ def test(amount, model_path, test_data_path):
             running_ssim[-1],
             running_zncc[-1]
         ), fontsize=24)
-        plt.close(fig)
 
         walking_mae += running_mae[-1]
 
-        # plt.savefig("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/results/" + os.path.basename(src_path) + ".png")
-        # plt.close(fig)
+        plt.savefig("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/results/" + os.path.basename(src_path) + ".png")
+        plt.close(fig)
 
         c += 1
 
@@ -150,8 +152,8 @@ def test(amount, model_path, test_data_path):
 
 if __name__ == '__main__':
     test(
-        7,
-        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/model_epoch15.pt",
+        0,
+        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/model_epoch12.pt",
         "/home/fkt48uj/nrw/dataset/data/test/"
     )
 
