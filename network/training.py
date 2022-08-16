@@ -111,12 +111,12 @@ def valid(epoch, loader, loss_fn, model, mse, ssim):
     running_zncc = []
 
     for batch_index, (data, target, dataframepath) in enumerate(loop):
+        data = data.to(device)
+
         data[data < 0] = 0
         target[target < 0] = 0
 
-        data = data.to(device)
         data = model(data)
-
         data[data < 0] = 0
 
         target = target.unsqueeze(1).to(device)
