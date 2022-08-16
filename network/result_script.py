@@ -62,11 +62,13 @@ def test(amount, model_path, test_data_path):
 
     for (data, target, src_path) in loop:
         data = data.unsqueeze(0).to("cuda:0")
-        prediction = unet(data, data)
-        prediction[prediction < 0] = 0
 
-        target = target.unsqueeze(0).unsqueeze(0).to("cuda:0")
+        data[data < 0] = 0
         target[target < 0] = 0
+
+        prediction = unet(data)
+
+        prediction[prediction < 0] = 0
 
         running_mae.append(mae(prediction, target).item())
         running_mse.append(mse(prediction, target).item())

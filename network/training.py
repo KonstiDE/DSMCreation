@@ -60,12 +60,13 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model, mse, ssim):
 
     for batch_index, (data, target, dataframepath) in enumerate(loop):
         optimizer.zero_grad(set_to_none=True)
-
-        data = data.cuda()
-        data = model(data, data)
+        data = data.to(device)
 
         data[data < 0] = 0
         target[target < 0] = 0
+
+        data = model(data)
+        data[data < 0] = 0
 
         target = target.unsqueeze(1).to(device)
 
@@ -110,10 +111,12 @@ def valid(epoch, loader, loss_fn, model, mse, ssim):
 
     for batch_index, (data, target, dataframepath) in enumerate(loop):
         data = data.to(device)
-        data = model(data, data)
 
         data[data < 0] = 0
         target[target < 0] = 0
+
+        data = model(data)
+        data[data < 0] = 0
 
         target = target.unsqueeze(1).to(device)
 
