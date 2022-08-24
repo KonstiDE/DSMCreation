@@ -8,9 +8,6 @@ from tqdm.auto import tqdm as prog
 from PIL import Image
 
 
-from dataset.helper.dataset_helper import (
-    cutting_length
-)
 from provider.dataset_provider import (
     get_dataset
 )
@@ -82,8 +79,8 @@ def test(amount, model_path, test_data_path):
 
         target = target.unsqueeze(0).unsqueeze(0).to("cuda:0")
 
-        prediction = tf.center_crop(prediction, [cutting_length, cutting_length])
-        target = tf.center_crop(target, [cutting_length, cutting_length])
+        prediction = tf.center_crop(prediction, [500, 500])
+        target = tf.center_crop(target, [500, 500])
 
         running_mae.append(mae(prediction, target).item())
         running_mse.append(mse(prediction, target).item())
@@ -153,7 +150,7 @@ def test(amount, model_path, test_data_path):
 if __name__ == '__main__':
     test(
         0,
-        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/model_epoch12.pt",
+        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/model_epoch14.pt",
         "/home/fkt48uj/nrw/dataset/data/test/"
     )
 
