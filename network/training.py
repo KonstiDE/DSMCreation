@@ -65,7 +65,7 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model, mse, ssim):
         data[data < 0] = 0
         target[target < 0] = 0
 
-        data = model(data)
+        data = model(data, data)
         data[data < 0] = 0
 
         target = target.unsqueeze(1).to(device)
