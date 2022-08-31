@@ -25,7 +25,8 @@ from network.provider.dataset_provider import (
 )
 
 from dataset.helper.dataset_helper import (
-    split
+    split,
+    cutting_length
 )
 
 from network.helper.network_helper import (
@@ -65,7 +66,7 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model, mse, ssim):
         data[data < 0] = 0
         target[target < 0] = 0
 
-        data = model(data)
+        data = model(data, data)
         data[data < 0] = 0
 
         target = target.unsqueeze(1).to(device)
@@ -115,7 +116,7 @@ def valid(epoch, loader, loss_fn, model, mse, ssim):
         data[data < 0] = 0
         target[target < 0] = 0
 
-        data = model(data)
+        data = model(data, data)
         data[data < 0] = 0
 
         target = target.unsqueeze(1).to(device)
