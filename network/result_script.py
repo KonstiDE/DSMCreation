@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from tqdm.auto import tqdm as prog
+from PIL import Image
+
 
 from provider.dataset_provider import (
     get_dataset
@@ -31,6 +33,11 @@ sys.path.append(os.getcwd())
 
 import shutup
 shutup.please()
+
+
+def normalize(array):
+    array_min, array_max = array.min(), array.max()
+    return (array - array_min) / (array_max - array_min)
 
 
 def test(amount, model_path, test_data_path):
@@ -66,9 +73,14 @@ def test(amount, model_path, test_data_path):
         data[data < 0] = 0
         target[target < 0] = 0
 
-        prediction = unet(data)
+        prediction = unet(data, data)
 
         prediction[prediction < 0] = 0
+
+        target = target.unsqueeze(0).unsqueeze(0).to("cuda:0")
+
+        prediction = tf.center_crop(prediction, [500, 500])
+        target = tf.center_crop(target, [500, 500])
 
         running_mae.append(mae(prediction, target).item())
         running_mse.append(mse(prediction, target).item())
@@ -79,23 +91,20 @@ def test(amount, model_path, test_data_path):
         mse.reset()
         ssim.reset()
 
-        prediction = prediction.squeeze(0).squeeze(0)
-        target = target.squeeze(0).squeeze(0)
+        prediction = prediction.squeeze(0).squeeze(0).detach().cpu()
+        target = target.squeeze(0).squeeze(0).detach().cpu()
 
-        prediction = prediction.detach().cpu()
-        target = target.detach().cpu()
-
-        data = data.squeeze(0).cpu()
+        data = data.squeeze(0).cpu().numpy()
         red = data[0]
-        red *= 1 / red.max()
+        red_normalized = (red * (255 / red.max())).astype(np.uint8)
         green = data[1]
-        green *= 1 / green.max()
+        green_normalized = (green * (255 / green.max())).astype(np.uint8)
         blue = data[2]
-        blue *= 1 / blue.max()
+        blue_normalized = (blue * (255 / blue.max())).astype(np.uint8)
 
-        beauty = np.dstack((blue, green, red))
+        beauty = np.dstack((red_normalized, green_normalized, blue_normalized))
 
-        fig, axs = plt.subplots(1, 3)
+        fig, axs = plt.subplots(1, 3, figsize=(21, 5))
 
         im = axs[0].imshow(beauty)
         axs[0].set_xticklabels([])
@@ -112,21 +121,21 @@ def test(amount, model_path, test_data_path):
         axs[2].set_yticklabels([])
         plt.colorbar(im, ax=axs[2])
 
-        fig.suptitle("MAE: {}, MSE: {},\nSSIM: {}, ZNCC: {}".format(
-            str(running_mae[-1]),
-            str(running_mse[-1]),
-            str(running_ssim[-1]),
-            str(running_zncc[-1])
-        ))
+        fig.suptitle("MAE: {:.3f}, MSE: {:.3f}, SSIM: {:.3f}, ZNCC: {:.3f}".format(
+            running_mae[-1],
+            running_mse[-1],
+            running_ssim[-1],
+            running_zncc[-1]
+        ), fontsize=24)
 
         walking_mae += running_mae[-1]
 
-        plt.savefig("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v2/results/" + os.path.basename(src_path) + ".png")
+        plt.savefig("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_2/results/" + os.path.basename(src_path) + ".png")
         plt.close(fig)
 
         c += 1
 
-        loop.set_postfix(info="MAE={:.2f}".format(walking_mae / c))
+        loop.set_postfix(info="MAE={:.4f}".format(walking_mae / c))
 
     file = open("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v2/results/mae.txt", "w+")
     file.write("MAE: {}, MSE: {}, SSIM: {}, ZNCC: {}".format(
@@ -141,6 +150,7 @@ def test(amount, model_path, test_data_path):
 if __name__ == '__main__':
     test(
         0,
-        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v2/model_epoch38.pt",
+        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v2/model_epoch14.pt",
         "/home/fkt48uj/nrw/dataset/data/test/"
     )
+
