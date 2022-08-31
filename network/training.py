@@ -25,7 +25,8 @@ from network.provider.dataset_provider import (
 )
 
 from dataset.helper.dataset_helper import (
-    split
+    split,
+    cutting_length
 )
 
 from network.helper.network_helper import (
