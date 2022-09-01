@@ -11,6 +11,12 @@ from PIL import Image
 from provider.dataset_provider import (
     get_dataset
 )
+from helper.network_helper import (
+    batch_size,
+    num_workers,
+    pin_memory
+)
+
 import provider.pytorchtools as pytorchtools
 
 from torchmetrics.regression import (
@@ -48,7 +54,7 @@ def test(amount, model_path, test_data_path):
     unet.eval()
     torch.no_grad()
 
-    loader = get_dataset(test_data_path, amount)
+    loader = get_loader(test_data_path, 1, num_workers, pin_memory, amount)
     c = 0
 
     if not os.path.exists("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/results"):

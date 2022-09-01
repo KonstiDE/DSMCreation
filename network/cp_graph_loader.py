@@ -1,8 +1,13 @@
 import os
 import torch
 import statistics as s
+import numpy as np
 
 import matplotlib.pyplot as plt
+
+from helper.network_helper import (
+    batch_size
+)
 
 
 def load_graphs_from_checkpoint(model_path, epoch):
@@ -18,6 +23,9 @@ def load_graphs_from_checkpoint(model_path, epoch):
         overall_validation_mse = checkpoint['validation_mses']
         overall_validation_ssim = checkpoint['validation_ssims']
         overall_validation_zncc = checkpoint['validation_znccs']
+
+        overall_training_zncc = np.divide(overall_training_zncc, batch_size)
+        overall_validation_zncc = np.divide(overall_validation_zncc, batch_size)
 
         plt.figure()
         plt.plot(overall_training_loss, 'b', label="Training loss")
@@ -74,4 +82,4 @@ def load_graphs_from_checkpoint(model_path, epoch):
 
 
 if __name__ == '__main__':
-    load_graphs_from_checkpoint("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/", 14)
+    load_graphs_from_checkpoint("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/", 19)
