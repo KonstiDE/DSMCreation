@@ -130,7 +130,7 @@ def test(amount, model_path, test_data_path):
 
         walking_mae += running_mae[-1]
 
-        plt.savefig("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_2/results/" + os.path.basename(src_path) + ".png")
+        plt.savefig("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v2/results/" + os.path.basename(src_path) + ".png")
         plt.close(fig)
 
         c += 1
@@ -150,7 +150,7 @@ def test(amount, model_path, test_data_path):
 if __name__ == '__main__':
     test(
         0,
-        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v2/model_epoch14.pt",
+        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v2/model_epoch23.pt",
         "/home/fkt48uj/nrw/dataset/data/test/"
     )
 
