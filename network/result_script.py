@@ -18,6 +18,14 @@ from torchmetrics.regression import (
     MeanSquaredError
 )
 
+from helper.network_helper import (
+    batch_size,
+    num_workers,
+    pin_memory,
+    device
+)
+
+
 from torchmetrics.image import StructuralSimilarityIndexMeasure
 
 from metrics.zncc import (
@@ -35,15 +43,10 @@ import shutup
 shutup.please()
 
 
-def normalize(array):
-    array_min, array_max = array.min(), array.max()
-    return (array - array_min) / (array_max - array_min)
-
-
 def test(amount, model_path, test_data_path):
     unet = UNET_FANNED(in_channels=4, out_channels=1)
     unet.load_state_dict(torch.load(model_path)['model_state_dict'])
-    unet.to("cuda:0")
+    unet.to(device)
 
     unet.eval()
     torch.no_grad()
@@ -54,9 +57,9 @@ def test(amount, model_path, test_data_path):
     if not os.path.exists("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v2/results"):
         os.mkdir("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v2/results")
 
-    mae = MeanAbsoluteError().to("cuda:0")
-    mse = MeanSquaredError().to("cuda:0")
-    ssim = StructuralSimilarityIndexMeasure(kernel_size=(5, 5)).to("cuda:0")
+    mae = MeanAbsoluteError().to(device)
+    mse = MeanSquaredError().to(device)
+    ssim = StructuralSimilarityIndexMeasure(kernel_size=(5, 5)).to(device)
 
     walking_mae = 0
 
@@ -68,7 +71,7 @@ def test(amount, model_path, test_data_path):
     loop = prog(loader)
 
     for (data, target, src_path) in loop:
-        data = data.unsqueeze(0).to("cuda:0")
+        data = data.unsqueeze(0).to(device)
 
         data[data < 0] = 0
         target[target < 0] = 0
@@ -77,7 +80,7 @@ def test(amount, model_path, test_data_path):
 
         prediction[prediction < 0] = 0
 
-        target = target.unsqueeze(0).unsqueeze(0).to("cuda:0")
+        target = target.unsqueeze(0).unsqueeze(0).to(device)
 
         prediction = tf.center_crop(prediction, [500, 500])
         target = tf.center_crop(target, [500, 500])
@@ -114,6 +117,7 @@ def test(amount, model_path, test_data_path):
         im = axs[1].imshow(prediction, cmap="viridis")
         axs[1].set_xticklabels([])
         axs[1].set_yticklabels([])
+        im.set_clim(0, max(prediction.max(), target.max()))
         plt.colorbar(im, ax=axs[1])
 
         im = axs[2].imshow(target, cmap="viridis")
