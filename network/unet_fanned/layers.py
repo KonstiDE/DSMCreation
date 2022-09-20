@@ -90,13 +90,10 @@ class UnfanningAttention(nn.Module):
 
     def forward(self, small, big):
         save = torch.add(small, big)
+        small = small.clone().detach()
+        big = big.clone().detach()
 
-        skip_con = self.relu(save)
+        small_skip = self.upsample(self.sigmoid(self.breakdown(self.relu(small))))
+        big_skip = self.upsample(self.sigmoid(self.breakdown(self.relu(big))))
 
-        skip_con = self.breakdown(skip_con)
-        skip_con = self.sigmoid(skip_con)
-        skip_con = self.upsample(skip_con)
-
-        skip_con = torch.multiply(skip_con, save)
-
-        return self.batchnorm(skip_con)
+        return self.batchnorm(torch.add(save, torch.multiply(save, torch.multiply(small_skip, big_skip))))
