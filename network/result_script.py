@@ -72,7 +72,6 @@ def test(amount, model_path, test_data_path):
         target[target < 0] = 0
 
         prediction = unet(data, data)
-
         prediction[prediction < 0] = 0
 
         target = target.unsqueeze(0).unsqueeze(0).to(device)

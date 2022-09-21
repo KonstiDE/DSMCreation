@@ -2,7 +2,7 @@ import time
 import torch
 
 
-def zncc(img1, img2, eps=0.00001, size=512**2):
+def zncc(img1, img2, eps=0.00001):
     avg1 = torch.mean(img1)
     avg2 = torch.mean(img2)
 
@@ -11,12 +11,12 @@ def zncc(img1, img2, eps=0.00001, size=512**2):
     img1 = torch.sub(img1, avg1)
     img2 = torch.sub(img2, avg2)
 
-    return torch.div(torch.sum(torch.mul(first, torch.mul(torch.sub(img1, avg1), torch.sub(img2, avg2)))), size)
+    return torch.div(torch.sum(torch.mul(first, torch.mul(torch.sub(img1, avg1), torch.sub(img2, avg2)))), torch.numel(img1))
 
 
 if __name__ == "__main__":
-    A = torch.randn([8, 1, 512, 512]).cuda()
-    B = torch.randn([8, 1, 512, 512]).cuda()
+    A = torch.randn([8, 1, 500, 500]).cuda()
+    B = torch.randn([8, 1, 500, 500]).cuda()
 
     stamp = time.time() * 1000
 

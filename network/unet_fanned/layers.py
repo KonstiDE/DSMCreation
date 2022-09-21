@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import torch.nn as nn
 import torchvision.transforms.functional as tf
@@ -95,5 +96,18 @@ class UnfanningAttention(nn.Module):
 
         small_skip = self.upsample(self.sigmoid(self.breakdown(self.relu(small))))
         big_skip = self.upsample(self.sigmoid(self.breakdown(self.relu(big))))
+        # print("\n")
 
-        return self.batchnorm(torch.add(save, torch.multiply(save, torch.multiply(small_skip, big_skip))))
+        # multi_skip = torch.multiply(small_skip, big_skip)
+        # print(np.average(multi_skip.clone().detach().cpu().numpy()))
+
+        # multi_skip = torch.multiply(save, multi_skip)
+        # print(np.average(multi_skip.clone().detach().cpu().numpy()))
+
+        # multi_skip = self.batchnorm(multi_skip)
+        # print(np.average(multi_skip.clone().detach().cpu().numpy()))
+
+        # print(np.average(small_skip.detach().cpu().numpy())) 0.0016
+        # print(np.average(big_skip.detach().cpu().numpy()))      "
+
+        return self.relu(self.batchnorm(torch.multiply(save, torch.multiply(small_skip, big_skip))))
