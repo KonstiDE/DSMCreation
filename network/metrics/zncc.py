@@ -13,8 +13,7 @@ def zncc(img1, img2, eps=0.00001):
 
         first = 1 / (torch.std(img1[i]) * torch.std(img2[i]) + eps)
 
-        zc = torch.mul(torch.sum(torch.mul(first, torch.mul(torch.sub(img1[i], avg1), torch.sub(img2[i], avg2)))), numel)
-        znccs += zc
+        znccs += torch.mul(torch.sum(torch.mul(first, torch.mul(torch.sub(img1[i], avg1), torch.sub(img2[i], avg2)))), numel)
     return znccs
 
 
