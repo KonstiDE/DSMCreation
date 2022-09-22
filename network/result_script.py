@@ -9,10 +9,9 @@ from PIL import Image
 
 
 from provider.dataset_provider import (
-    get_dataset
+    get_loader
 )
 from helper.network_helper import (
-    batch_size,
     num_workers,
     pin_memory,
     device
@@ -50,11 +49,11 @@ def test(amount, model_path, test_data_path):
     unet.eval()
     torch.no_grad()
 
-    loader = get_dataset(test_data_path, amount)
+    loader = get_loader(test_data_path, 1, num_workers, pin_memory, amount=amount, shuffle=False)
     c = 0
 
-    if not os.path.exists("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/results"):
-        os.mkdir("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/results")
+    if not os.path.exists("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v4/results"):
+        os.mkdir("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v4/results")
 
     mae = MeanAbsoluteError().to(device)
     mse = MeanSquaredError().to(device)
@@ -70,16 +69,15 @@ def test(amount, model_path, test_data_path):
     loop = prog(loader)
 
     for (data, target, src_path) in loop:
-        data = data.unsqueeze(0).to(device)
+        data = data.to(device)
 
         data[data < 0] = 0
         target[target < 0] = 0
 
         prediction = unet(data)
-
         prediction[prediction < 0] = 0
 
-        target = target.unsqueeze(0).unsqueeze(0).to(device)
+        target = target.unsqueeze(1).to(device)
 
         prediction = tf.center_crop(prediction, [500, 500])
         target = tf.center_crop(target, [500, 500])
@@ -133,14 +131,16 @@ def test(amount, model_path, test_data_path):
 
         walking_mae += running_mae[-1]
 
-        plt.savefig("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/results/" + os.path.basename(src_path) + ".png")
+        plt.savefig(
+            "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v4/results/" + os.path.basename(src_path[0]) + ".png"
+        )
         plt.close(fig)
 
         c += 1
 
         loop.set_postfix(info="MAE={:.4f}".format(walking_mae / c))
 
-    file = open("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/results/mae.txt", "w+")
+    file = open("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v4/results/mae1.txt", "w+")
     file.write("MAE: {}, MSE: {}, SSIM: {}, ZNCC: {}".format(
         str(s.mean(running_mae)),
         str(s.mean(running_mse)),
