@@ -7,13 +7,16 @@ import torch
 from tqdm.auto import tqdm as prog
 from PIL import Image
 
-from network.helper.network_helper import (
+
+from provider.dataset_provider import (
+    get_loader
+)
+from helper.network_helper import (
+    num_workers,
+    pin_memory,
     device
 )
 
-from provider.dataset_provider import (
-    get_dataset
-)
 import provider.pytorchtools as pytorchtools
 
 from torchmetrics.regression import (
@@ -46,7 +49,7 @@ def test(amount, model_path, test_data_path):
     unet.eval()
     torch.no_grad()
 
-    loader = get_dataset(test_data_path, amount)
+    loader = get_loader(test_data_path, 1, num_workers, pin_memory, amount=amount, shuffle=False)
     c = 0
 
     if not os.path.exists("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v3/results"):
@@ -66,7 +69,7 @@ def test(amount, model_path, test_data_path):
     loop = prog(loader)
 
     for (data, target, src_path) in loop:
-        data = data.unsqueeze(0).to(device)
+        data = data.to(device)
 
         data[data < 0] = 0
         target[target < 0] = 0
@@ -74,7 +77,7 @@ def test(amount, model_path, test_data_path):
         prediction = unet(data, data)
         prediction[prediction < 0] = 0
 
-        target = target.unsqueeze(0).unsqueeze(0).to(device)
+        target = target.unsqueeze(1).to(device)
 
         prediction = tf.center_crop(prediction, [500, 500])
         target = tf.center_crop(target, [500, 500])
@@ -111,6 +114,7 @@ def test(amount, model_path, test_data_path):
         im = axs[1].imshow(prediction, cmap="viridis")
         axs[1].set_xticklabels([])
         axs[1].set_yticklabels([])
+        im.set_clim(0, max(prediction.max(), target.max()))
         plt.colorbar(im, ax=axs[1])
 
         im = axs[2].imshow(target, cmap="viridis")
@@ -127,7 +131,9 @@ def test(amount, model_path, test_data_path):
 
         walking_mae += running_mae[-1]
 
-        plt.savefig("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v3/results/" + os.path.basename(src_path) + ".png")
+        plt.savefig(
+            "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v3/results/" + os.path.basename(src_path[0]) + ".png"
+        )
         plt.close(fig)
 
         c += 1
@@ -147,7 +153,6 @@ def test(amount, model_path, test_data_path):
 if __name__ == '__main__':
     test(
         0,
-        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v3/model_epoch14.pt",
+        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v3/model_epoch1.pt",
         "/home/fkt48uj/nrw/dataset/data/test/"
     )
-
