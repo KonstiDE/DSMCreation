@@ -140,7 +140,7 @@ def test(amount, model_path, test_data_path):
 
         loop.set_postfix(info="MAE={:.4f}".format(walking_mae / c))
 
-    file = open("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/results/mae1.txt", "w+")
+    file = open("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/results/mae.txt", "w+")
     file.write("MAE: {}, MSE: {}, SSIM: {}, ZNCC: {}".format(
         str(s.mean(running_mae)),
         str(s.mean(running_mse)),
