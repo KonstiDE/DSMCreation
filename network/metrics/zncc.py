@@ -1,17 +1,20 @@
 import time
 import torch
+import statistics as s
 
 
 def zncc(img1, img2, eps=0.00001):
-    avg1 = torch.mean(img1)
-    avg2 = torch.mean(img2)
+    # [B, C, W, H]
+    znccs = 0
+    numel = 1 / torch.numel(img1 / len(img1))
+    for i in range(len(img1)):
+        avg1 = torch.mean(img1[i])
+        avg2 = torch.mean(img2[i])
 
-    first = 1 / (torch.std(img1) * torch.std(img2) + eps)
+        first = 1 / (torch.std(img1[i]) * torch.std(img2[i]) + eps)
 
-    img1 = torch.sub(img1, avg1)
-    img2 = torch.sub(img2, avg2)
-
-    return torch.div(torch.sum(torch.mul(first, torch.mul(torch.sub(img1, avg1), torch.sub(img2, avg2)))), torch.numel(img1))
+        znccs += torch.mul(torch.sum(torch.mul(first, torch.mul(torch.sub(img1[i], avg1), torch.sub(img2[i], avg2)))), numel)
+    return znccs
 
 
 if __name__ == "__main__":
