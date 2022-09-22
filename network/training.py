@@ -207,8 +207,8 @@ def run(num_epochs, lr, epoch_to_start_from):
 
     model.to(device)
 
-    train_loader = get_loader(path_train, batch_size, num_workers, pin_memory, amount=1600)
-    validation_loader = get_loader(path_validation, batch_size, num_workers, pin_memory, amount=320)
+    train_loader = get_loader(path_train, batch_size, num_workers, pin_memory, amount=0)
+    validation_loader = get_loader(path_validation, batch_size, num_workers, pin_memory, amount=0)
 
     for epoch in range(epochs_done + 1, num_epochs + 1):
         training_loss, training_mae, training_mse, training_ssim, training_zncc = train(epoch, train_loader, loss_fn,
