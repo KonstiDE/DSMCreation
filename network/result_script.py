@@ -52,8 +52,8 @@ def test(amount, model_path, test_data_path):
     loader = get_loader(test_data_path, 1, num_workers, pin_memory, amount=amount, shuffle=False)
     c = 0
 
-    if not os.path.exists("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v4/results"):
-        os.mkdir("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v4/results")
+    if not os.path.exists("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/results"):
+        os.mkdir("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/results")
 
     mae = MeanAbsoluteError().to(device)
     mse = MeanSquaredError().to(device)
@@ -132,7 +132,7 @@ def test(amount, model_path, test_data_path):
         walking_mae += running_mae[-1]
 
         plt.savefig(
-            "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v4/results/" + os.path.basename(src_path[0]) + ".png"
+            "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/results/" + os.path.basename(src_path[0]) + ".png"
         )
         plt.close(fig)
 
@@ -140,7 +140,7 @@ def test(amount, model_path, test_data_path):
 
         loop.set_postfix(info="MAE={:.4f}".format(walking_mae / c))
 
-    file = open("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v4/results/mae1.txt", "w+")
+    file = open("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/results/mae1.txt", "w+")
     file.write("MAE: {}, MSE: {}, SSIM: {}, ZNCC: {}".format(
         str(s.mean(running_mae)),
         str(s.mean(running_mse)),
