@@ -9,22 +9,20 @@ from PIL import Image
 
 
 from provider.dataset_provider import (
-    get_dataset
+    get_loader
 )
+from helper.network_helper import (
+    num_workers,
+    pin_memory,
+    device
+)
+
 import provider.pytorchtools as pytorchtools
 
 from torchmetrics.regression import (
     MeanAbsoluteError,
     MeanSquaredError
 )
-
-from helper.network_helper import (
-    batch_size,
-    num_workers,
-    pin_memory,
-    device
-)
-
 
 from torchmetrics.image import StructuralSimilarityIndexMeasure
 
@@ -51,7 +49,7 @@ def test(amount, model_path, test_data_path):
     unet.eval()
     torch.no_grad()
 
-    loader = get_dataset(test_data_path, amount)
+    loader = get_loader(test_data_path, 1, num_workers, pin_memory, amount=amount, shuffle=False)
     c = 0
 
     if not os.path.exists("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v2/results"):
@@ -71,16 +69,15 @@ def test(amount, model_path, test_data_path):
     loop = prog(loader)
 
     for (data, target, src_path) in loop:
-        data = data.unsqueeze(0).to(device)
+        data = data.to(device)
 
         data[data < 0] = 0
         target[target < 0] = 0
 
         prediction = unet(data, data)
-
         prediction[prediction < 0] = 0
 
-        target = target.unsqueeze(0).unsqueeze(0).to(device)
+        target = target.unsqueeze(1).to(device)
 
         prediction = tf.center_crop(prediction, [500, 500])
         target = tf.center_crop(target, [500, 500])
@@ -134,7 +131,9 @@ def test(amount, model_path, test_data_path):
 
         walking_mae += running_mae[-1]
 
-        plt.savefig("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v2/results/" + os.path.basename(src_path) + ".png")
+        plt.savefig(
+            "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v2/results/" + os.path.basename(src_path[0]) + ".png"
+        )
         plt.close(fig)
 
         c += 1
@@ -157,4 +156,3 @@ if __name__ == '__main__':
         "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v2/model_epoch23.pt",
         "/home/fkt48uj/nrw/dataset/data/test/"
     )
-
