@@ -18,11 +18,18 @@ def zncc(img1, img2, eps=0.00001):
 
 
 if __name__ == "__main__":
-    A = torch.randn([8, 1, 512, 512]).cuda()
-    B = torch.randn([8, 1, 512, 512]).cuda()
+    A = torch.randn([8, 1, 500, 500])
+    B = torch.randn([8, 1, 500, 500])
 
-    stamp = time.time() * 1000
+    print(zncc(A, B))
 
-    value = zncc(A, B)
+    s1 = zncc(A[0].unsqueeze(0), B[0].unsqueeze(0))
+    s2 = zncc(A[1].unsqueeze(0), B[1].unsqueeze(0))
+    s3 = zncc(A[2].unsqueeze(0), B[2].unsqueeze(0))
+    s4 = zncc(A[3].unsqueeze(0), B[3].unsqueeze(0))
+    s5 = zncc(A[4].unsqueeze(0), B[4].unsqueeze(0))
+    s6 = zncc(A[5].unsqueeze(0), B[5].unsqueeze(0))
+    s7 = zncc(A[6].unsqueeze(0), B[6].unsqueeze(0))
+    s8 = zncc(A[7].unsqueeze(0), B[7].unsqueeze(0))
 
-    print("{}:: That took {}ms".format(value, time.time() * 1000 - stamp))
+    print((s1 + s2 + s3 + s4 + s5 + s6 + s7 + s8) / 8)
