@@ -156,7 +156,7 @@ def run(num_epochs, lr, epoch_to_start_from):
     path_validation = split['validation'][1]
 
     torch_mse = MeanSquaredError().to(device)
-    torch_ssim = StructuralSimilarityIndexMeasure(kernel_size=(5, 5)).to(device)
+    torch_ssim = StructuralSimilarityIndexMeasure(kernel_size=(5, 5))
 
     epochs_done = 0
 

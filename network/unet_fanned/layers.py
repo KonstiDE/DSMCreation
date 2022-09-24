@@ -91,11 +91,8 @@ class UnfanningAttention(nn.Module):
 
     def forward(self, small, big):
         save = torch.add(small, big)
-        small = small.clone().detach()
-        big = big.clone().detach()
 
-        small_skip = self.upsample(self.sigmoid(self.breakdown(self.relu(small))))
-        big_skip = self.upsample(self.sigmoid(self.breakdown(self.relu(big))))
+        skip = self.upsample(self.sigmoid(self.breakdown(self.relu(save))))
         # print("\n")
 
         # multi_skip = torch.multiply(small_skip, big_skip)
@@ -110,4 +107,4 @@ class UnfanningAttention(nn.Module):
         # print(np.average(small_skip.detach().cpu().numpy())) 0.0016
         # print(np.average(big_skip.detach().cpu().numpy()))      "
 
-        return self.relu(self.batchnorm(torch.multiply(save, torch.multiply(small_skip, big_skip))))
+        return self.batchnorm(torch.multiply(save, skip))
