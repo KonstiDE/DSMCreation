@@ -88,6 +88,7 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model, mse, ssim):
         running_ssim.append(custom_ssim(data, target, ssim).item())
 
         mse.reset()
+        ssim.reset()
 
         loop.set_postfix(info="Epoch {}, train, loss={:.5f}".format(epoch, loss_value))
         running_loss.append(loss_value)
@@ -133,6 +134,7 @@ def valid(epoch, loader, loss_fn, model, mse, ssim):
         running_ssim.append(custom_ssim(data, target, ssim).item())
 
         mse.reset()
+        ssim.reset()
 
         loop.set_postfix(info="Epoch {}, valid, loss={:.5f}".format(epoch, loss_value))
         running_loss.append(loss_value)
