@@ -26,9 +26,8 @@ from torchmetrics.regression import (
 
 from torchmetrics.image import StructuralSimilarityIndexMeasure
 
-from metrics.zncc import (
-    zncc
-)
+from metrics.zncc import zncc
+from metrics.ssim import custom_ssim
 
 from unet_fanned.model import UNET_FANNED
 
@@ -85,7 +84,7 @@ def test(amount, model_path, test_data_path):
         running_mae.append(mae(prediction, target).item())
         running_mse.append(mse(prediction, target).item())
         running_zncc.append(zncc(prediction, target).item())
-        running_ssim.append(ssim(prediction, target).item())
+        running_ssim.append(custom_ssim(prediction, target, ssim_metric=ssim).item())
 
         mae.reset()
         mse.reset()
@@ -140,7 +139,7 @@ def test(amount, model_path, test_data_path):
 
         loop.set_postfix(info="MAE={:.4f}".format(walking_mae / c))
 
-    file = open("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v3/results/mae.txt", "w+")
+    file = open("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v3/results/mae1.txt", "w+")
     file.write("MAE: {}, MSE: {}, SSIM: {}, ZNCC: {}".format(
         str(s.mean(running_mae)),
         str(s.mean(running_mse)),
@@ -152,7 +151,8 @@ def test(amount, model_path, test_data_path):
 
 if __name__ == '__main__':
     test(
-        0,
-        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v3/model_epoch1.pt",
+        3000,
+        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v3/model_epoch2.pt",
         "/home/fkt48uj/nrw/dataset/data/test/"
     )
+
