@@ -40,9 +40,8 @@ from network.provider.pytorchtools import (
     EarlyStopping
 )
 
-from network.metrics.zncc import (
-    zncc
-)
+from network.metrics.zncc import zncc
+from network.metrics.ssim import custom_ssim
 
 from unet_fanned.model import UNET_FANNED
 
@@ -86,10 +85,9 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model, mse, ssim):
         running_mae.append(loss_value)
         running_mse.append(mse(data, target).item())
         running_zncc.append(zncc(data, target).item())
-        running_ssim.append(ssim(data, target).item())
+        running_ssim.append(custom_ssim(data, target, ssim).item())
 
         mse.reset()
-        ssim.reset()
 
         loop.set_postfix(info="Epoch {}, train, loss={:.5f}".format(epoch, loss_value))
         running_loss.append(loss_value)
@@ -116,7 +114,7 @@ def valid(epoch, loader, loss_fn, model, mse, ssim):
         data[data < 0] = 0
         target[target < 0] = 0
 
-        data = model(data, data)
+        data = model(data)
         data[data < 0] = 0
 
         target = target.unsqueeze(1).to(device)
@@ -132,10 +130,9 @@ def valid(epoch, loader, loss_fn, model, mse, ssim):
         running_mae.append(loss_value)
         running_mse.append(mse(data, target).item())
         running_zncc.append(zncc(data, target).item())
-        running_ssim.append(ssim(data, target).item())
+        running_ssim.append(custom_ssim(data, target, ssim).item())
 
         mse.reset()
-        ssim.reset()
 
         loop.set_postfix(info="Epoch {}, valid, loss={:.5f}".format(epoch, loss_value))
         running_loss.append(loss_value)
