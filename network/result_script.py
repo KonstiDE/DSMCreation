@@ -151,8 +151,8 @@ def test(amount, model_path, test_data_path):
 
 if __name__ == '__main__':
     test(
-        3000,
-        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/model_epoch2.pt",
+        0,
+        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/model_epoch18.pt",
         "/home/fkt48uj/nrw/dataset/data/test/"
     )
 

@@ -24,9 +24,6 @@ def load_graphs_from_checkpoint(model_path, epoch):
         overall_validation_ssim = checkpoint['validation_ssims']
         overall_validation_zncc = checkpoint['validation_znccs']
 
-        overall_training_zncc = np.divide(overall_training_zncc, batch_size)
-        overall_validation_zncc = np.divide(overall_validation_zncc, batch_size)
-
         plt.figure()
         plt.plot(overall_training_loss, 'b', label="Training loss")
         plt.plot(overall_validation_loss, 'r', label="Validation loss")
@@ -62,17 +59,17 @@ def load_graphs_from_checkpoint(model_path, epoch):
         plt.tick_params(labelsize=18)
         plt.show()
 
-        print('MAE train: ' + str(s.mean(overall_training_mae)))
-        print('MAE valid: ' + str(s.mean(overall_validation_mae)))
+        print('MAE train: ' + str(overall_training_mae[epoch - 1]))
+        print('MAE valid: ' + str(overall_validation_mae[epoch - 1]))
 
-        print('MSE train: ' + str(s.mean(overall_training_mse)))
-        print('MSE valid: ' + str(s.mean(overall_validation_mse)))
+        print('MSE train: ' + str(overall_training_mse[epoch - 1]))
+        print('MSE valid: ' + str(overall_validation_mse[epoch - 1]))
 
-        print('SSIM train: ' + str(s.mean(overall_training_ssim)))
-        print('SSIM valid: ' + str(s.mean(overall_validation_ssim)))
+        print('SSIM train: ' + str(overall_training_ssim[epoch - 1]))
+        print('SSIM valid: ' + str(overall_validation_ssim[epoch - 1]))
 
-        print('ZNCC train: ' + str(s.mean(overall_training_zncc)))
-        print('ZNCC valid: ' + str(s.mean(overall_validation_zncc)))
+        print('ZNCC train: ' + str(overall_training_zncc[epoch - 1]))
+        print('ZNCC valid: ' + str(overall_validation_zncc[epoch - 1]))
 
     else:
         print("No model found within {} and epoch {}".format(
@@ -82,4 +79,4 @@ def load_graphs_from_checkpoint(model_path, epoch):
 
 
 if __name__ == '__main__':
-    load_graphs_from_checkpoint("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/", 14)
+    load_graphs_from_checkpoint("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/", 18)
