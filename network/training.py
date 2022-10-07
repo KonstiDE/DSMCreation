@@ -85,7 +85,7 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model, mse, ssim):
         running_mae.append(loss_value)
         running_mse.append(mse(data, target).item())
         running_zncc.append(zncc(data, target).item())
-        running_ssim.append(custom_ssim(data, target, ssim).item())
+        running_ssim.append(custom_ssim(data, target).item())
 
         mse.reset()
         ssim.reset()
@@ -131,7 +131,7 @@ def valid(epoch, loader, loss_fn, model, mse, ssim):
         running_mae.append(loss_value)
         running_mse.append(mse(data, target).item())
         running_zncc.append(zncc(data, target).item())
-        running_ssim.append(custom_ssim(data, target, ssim).item())
+        running_ssim.append(custom_ssim(data, target).item())
 
         mse.reset()
         ssim.reset()
