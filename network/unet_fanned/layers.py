@@ -84,8 +84,4 @@ class ConvUnfanning(nn.Module):
         self.relu = nn.ReLU(inplace=True)
 
     def forward(self, x, y):
-        z = torch.add(x, y)
-        z = self.unfanning(z)
-        z = self.batchnorm(z)
-
-        return self.relu(z)
+        return self.relu(self.batchnorm(self.unfanning(torch.add(x, y))))

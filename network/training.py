@@ -1,4 +1,7 @@
 import os
+import time
+import gc
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -85,7 +88,7 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model, mse, ssim):
         running_mae.append(loss_value)
         running_mse.append(mse(data, target).item())
         running_zncc.append(zncc(data, target).item())
-        running_ssim.append(custom_ssim(data, target, ssim).item())
+        running_ssim.append(custom_ssim(data, target).item())
 
         mse.reset()
         ssim.reset()
@@ -131,10 +134,13 @@ def valid(epoch, loader, loss_fn, model, mse, ssim):
         running_mae.append(loss_value)
         running_mse.append(mse(data, target).item())
         running_zncc.append(zncc(data, target).item())
-        running_ssim.append(custom_ssim(data, target, ssim).item())
+        running_ssim.append(custom_ssim(data, target).item())
 
         mse.reset()
         ssim.reset()
+
+        del data
+        del target
 
         loop.set_postfix(info="Epoch {}, valid, loss={:.5f}".format(epoch, loss_value))
         running_loss.append(loss_value)
@@ -156,7 +162,7 @@ def run(num_epochs, lr, epoch_to_start_from):
     path_validation = split['validation'][1]
 
     torch_mse = MeanSquaredError().to(device)
-    torch_ssim = StructuralSimilarityIndexMeasure(kernel_size=(5, 5)).to(device)
+    torch_ssim = StructuralSimilarityIndexMeasure(kernel_size=(5, 5))
 
     epochs_done = 0
 
@@ -213,6 +219,7 @@ def run(num_epochs, lr, epoch_to_start_from):
         training_loss, training_mae, training_mse, training_ssim, training_zncc = train(epoch, train_loader, loss_fn,
                                                                                         optimizer, scaler, model,
                                                                                         torch_mse, torch_ssim)
+
         torch.cuda.empty_cache()
 
         validation_loss, validation_mae, validation_mse, validation_ssim, validation_zncc = valid(epoch,
