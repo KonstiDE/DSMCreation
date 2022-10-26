@@ -90,9 +90,9 @@ class UnfanningAttention(nn.Module):
         self.upsample = nn.ConvTranspose2d(1, out_channels, kernel_size=(3, 3), padding=(1, 1), padding_mode='zeros')
 
     def forward(self, small, big):
-        save = torch.add(small, big)
+        save = self.relu(torch.add(small, big))
 
-        skip = self.upsample(self.sigmoid(self.breakdown(self.relu(save))))
+        skip = self.upsample(self.sigmoid(self.breakdown(save)))
         # print("\n")
 
         # multi_skip = torch.multiply(small_skip, big_skip)
@@ -105,6 +105,6 @@ class UnfanningAttention(nn.Module):
         # print(np.average(multi_skip.clone().detach().cpu().numpy()))
 
         # print(np.average(small_skip.detach().cpu().numpy())) 0.0016
-        # print(np.average(big_skip.detach().cpu().numpy()))      "
+        # print(np.average(big_skip.detach().cpu().numpy()))"
 
         return self.batchnorm(torch.multiply(save, skip))
