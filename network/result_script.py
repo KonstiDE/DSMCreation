@@ -56,7 +56,6 @@ def test(amount, model_path, test_data_path):
 
     mae = MeanAbsoluteError().to(device)
     mse = MeanSquaredError().to(device)
-    ssim = StructuralSimilarityIndexMeasure(kernel_size=(5, 5)).to(device)
 
     walking_mae = 0
 
@@ -84,11 +83,10 @@ def test(amount, model_path, test_data_path):
         running_mae.append(mae(prediction, target).item())
         running_mse.append(mse(prediction, target).item())
         running_zncc.append(zncc(prediction, target).item())
-        running_ssim.append(custom_ssim(prediction, target, ssim_metric=ssim).item())
+        running_ssim.append(custom_ssim(prediction, target).item())
 
         mae.reset()
         mse.reset()
-        ssim.reset()
 
         prediction = prediction.squeeze(0).squeeze(0).detach().cpu()
         target = target.squeeze(0).squeeze(0).detach().cpu()
@@ -151,8 +149,7 @@ def test(amount, model_path, test_data_path):
 
 if __name__ == '__main__':
     test(
-        3000,
-        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v3/model_epoch2.pt",
+        0,
+        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v3/model_epoch18.pt",
         "/home/fkt48uj/nrw/dataset/data/test/"
     )
-

@@ -87,7 +87,7 @@ class UnfanningAttention(nn.Module):
         self.batchnorm = nn.BatchNorm2d(out_channels)
         self.relu = nn.ReLU(inplace=True)
         self.sigmoid = nn.Sigmoid()
-        self.upsample = nn.ConvTranspose2d(1, out_channels, kernel_size=(3, 3), padding=(1, 1), padding_mode='zeros')
+        self.upsample = nn.ConvTranspose2d(1, out_channels, kernel_size=(1, 1))
 
     def forward(self, small, big):
         save = self.relu(torch.add(small, big))

@@ -32,7 +32,6 @@ class UNET_FANNED(nn.Module):
             self.down_convs_big.append(DoubleConv_Big(features[i], features[i + 1]))
 
         for i in range(len(features) - 2):
-            # self.unfanning.append(nn.Conv2d(features[i + 2], features[i + 1], kernel_size=(5, 5), bias=False, padding=2))
             self.unfanning.append(UnfanningAttention(features[i + 1], features[i + 1]))
 
         self.unfanning = self.unfanning[::-1]
