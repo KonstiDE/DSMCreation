@@ -43,7 +43,7 @@ from network.provider.pytorchtools import (
 from network.metrics.zncc import zncc
 from network.metrics.ssim import custom_ssim
 
-from unet_fanned.model import UNET_FANNED
+from unet_fanned.model_v1 import UNET_FANNED
 
 
 def train(epoch, loader, loss_fn, optimizer, scaler, model, mse, ssim):

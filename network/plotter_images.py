@@ -8,16 +8,25 @@ from tqdm.auto import tqdm as prog
 import torch
 import torch.nn as nn
 
+from network.unet_fanned.model_v1 import UNET_FANNED
 from provider.dataset_provider import get_dataset
 
-from unet_fanned.model import UNET_FANNED
+
+import importlib.util
+import sys
+spec = importlib.util.spec_from_file_location("module.name", "/home/fkt48uj/nrw/")
+foo = importlib.util.module_from_spec(spec)
+sys.modules["module.name"] = foo
+spec.loader.exec_module(foo)
+
+
 
 warnings.filterwarnings("ignore")
 
 DATA_PATH = "/home/fkt48uj/nrw/dataset/data/test/"
-MODEL_PATH_V1 = "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1_wrelu/model_epoch8.pt"
-MODEL_PATH_V2 = "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1_wrelu/model_epoch8.pt"
-MODEL_PATH_V3 = "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1_wrelu/model_epoch8.pt"
+MODEL_PATH_V1 = "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/model_epoch18.pt"
+MODEL_PATH_V2 = "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v2/model_epoch19.pt"
+MODEL_PATH_V3 = "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v3/model_epoch18.pt"
 BATCH_SIZE = 1
 DEVICE = "cuda:0"
 px = 1 / plt.rcParams['figure.dpi']
@@ -58,16 +67,19 @@ def perform_tests(loader, models, multiencoders, sample_ids=None):
 
                 if not first_done:
                     first_done = True
-                    target = target.squeeze(0).squeeze(0).detach()
-                    numpy_data = data.numpy()
 
-                    datadata = np.dstack((
-                        normalize(crop_center(numpy_data[2], 512)),
-                        normalize(crop_center(numpy_data[1], 512)),
-                        normalize(crop_center(numpy_data[0], 512)),
-                    ))
+                    data = data.squeeze(0).cpu().numpy()
+                    red = data[0]
+                    red_normalized = (red * (255 / red.max())).astype(np.uint8)
+                    green = data[1]
+                    green_normalized = (green * (255 / green.max())).astype(np.uint8)
+                    blue = data[2]
+                    blue_normalized = (blue * (255 / blue.max())).astype(np.uint8)
+
+                    beauty = np.dstack((red_normalized, green_normalized, blue_normalized))
+
                     target = crop_center(target, 512)
-                    im = axs[h, 0].imshow(datadata)
+                    im = axs[h, 0].imshow(beauty)
                     axs[h, 0].set_xticklabels([])
                     axs[h, 0].set_yticklabels([])
 
@@ -84,6 +96,9 @@ def perform_tests(loader, models, multiencoders, sample_ids=None):
                     prediction = models[i](data, data).squeeze(0).squeeze(0).detach().cpu()
                 else:
                     prediction = models[i](data).squeeze(0).squeeze(0).detach().cpu()
+
+                prediction = prediction.squeeze(0).squeeze(0).detach().cpu()
+                target = target.squeeze(0).squeeze(0).detach().cpu()
 
                 mae = skl.mean_absolute_error(target, prediction)
                 mse = skl.mean_squared_error(target, prediction)
@@ -105,16 +120,16 @@ def perform_tests(loader, models, multiencoders, sample_ids=None):
 def setup():
     test_loader = get_dataset(DATA_PATH)
 
-    unet_v1 = UNET(in_channels=4, out_channels=1)
+    unet_v1 = UNET_FANNED(in_channels=4, out_channels=1)
     unet_v1.load_state_dict(torch.load(MODEL_PATH_V1, map_location='cpu')['model_state_dict'])
 
-    unet_v2 = UNET(in_channels=4, out_channels=1)
+    unet_v2 = UNET_FANNED(in_channels=4, out_channels=1)
     unet_v2.load_state_dict(torch.load(MODEL_PATH_V2, map_location='cpu')['model_state_dict'])
 
-    unet_v3 = UNET(in_channels=4, out_channels=1)
+    unet_v3 = UNET_FANNED(in_channels=4, out_channels=1)
     unet_v3.load_state_dict(torch.load(MODEL_PATH_V3, map_location='cpu')['model_state_dict'])
 
-    perform_tests(test_loader, [unet_v1, unet_v2, unet_v3], [False, False, False], [1, 2, 3, 4, 5, 6, 7, 8])
+    perform_tests(test_loader, [unet_v1, unet_v2, unet_v3], [False, True, True], [1, 2, 3, 4, 5, 6, 7, 8])
 
 
 if __name__ == '__main__':
