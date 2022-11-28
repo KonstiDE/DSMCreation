@@ -11,13 +11,19 @@ import torch.nn as nn
 from network.unet_fanned.model_v1 import UNET_FANNED
 from provider.dataset_provider import get_dataset
 
-
 import importlib.util
 import sys
-spec = importlib.util.spec_from_file_location("module.name", "/home/fkt48uj/nrw/")
+spec = importlib.util.spec_from_file_location("module.name", "/home/fkt48uj/nrw/network/unet_fanned/model_v1.py")
 foo = importlib.util.module_from_spec(spec)
 sys.modules["module.name"] = foo
 spec.loader.exec_module(foo)
+unet_v1 = foo.UNET_FANNED()
+
+spec_v2 = importlib.util.spec_from_file_location("module.name", "/home/fkt48uj/nrw/network/unet_fanned/model_v2.py")
+foo_v2 = importlib.util.module_from_spec(spec_v2)
+sys.modules["module.name"] = foo_v2
+spec_v2.loader.exec_module(foo_v2)
+unet_v2 = foo.UNET_FANNED()
 
 
 
@@ -133,4 +139,5 @@ def setup():
 
 
 if __name__ == '__main__':
-    setup()
+    #setup()
+    ""
