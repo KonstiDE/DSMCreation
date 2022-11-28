@@ -3,7 +3,7 @@ import torch.nn as nn
 
 import torchvision.transforms.functional as tf
 
-from unet_fanned.layers import (
+from unet_fanned.layers_v2 import (
     DoubleConv_Small,
     DoubleConv_Big,
     UpConv,
