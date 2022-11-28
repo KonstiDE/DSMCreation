@@ -11,6 +11,7 @@ class NrwDataSet(Dataset):
 
         c = 0
         self.dataset = []
+        self.npz_dir = npz_dir
         for file in os.listdir(npz_dir):
             if not outliers.__contains__(file):
 
@@ -25,6 +26,23 @@ class NrwDataSet(Dataset):
 
     def __len__(self):
         return len(self.dataset)
+
+    def __getitem_by_name__(self, dataframename):
+        dataframepath = os.path.join(self.npz_dir, dataframename)
+        dataframe = np.load(dataframepath, allow_pickle=True)
+
+        red = dataframe["red"]
+        green = dataframe["green"]
+        blue = dataframe["blue"]
+        nir = dataframe["nir"]
+        dom = dataframe["dom"]
+
+        sentinel = np.stack((red, green, blue, nir))
+
+        sentinel = torch.Tensor(sentinel)
+        dsm = torch.Tensor(dom)
+
+        return sentinel, dsm, dataframepath
 
     def __getitem__(self, index):
         dataframepath = self.dataset[index]
