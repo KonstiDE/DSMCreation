@@ -142,6 +142,10 @@ def setup():
     unet_v2.load_state_dict(torch.load(MODEL_PATH_V2, map_location='cpu')['model_state_dict'])
     unet_v3.load_state_dict(torch.load(MODEL_PATH_V3, map_location='cpu')['model_state_dict'])
 
+    unet_v1.eval()
+    unet_v2.eval()
+    unet_v3.eval()
+
     perform_tests(
         test_loader,
         [unet_v1, unet_v2, unet_v3],
