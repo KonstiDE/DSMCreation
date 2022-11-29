@@ -8,10 +8,34 @@ class UpConv(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(UpConv, self).__init__()
 
+        self.in_channels = in_channels
+
         self.up = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=(2, 2), stride=(2, 2))
 
-    def forward(self, x):
-        return self.up(x)
+        self.conv_gating = nn.Conv2d(in_channels, out_channels, kernel_size=(1, 1), stride=(1, 1))
+        self.conv_skipcon = nn.Conv2d(int(in_channels / 2), out_channels, kernel_size=(1, 1), stride=(2, 2))
+        self.relu = nn.ReLU()
+        self.sigmoid = nn.Sigmoid()
+        self.breakdown = nn.Conv2d(int(in_channels / 2), 1, kernel_size=(1, 1))
+        self.up = nn.ConvTranspose2d(1, out_channels, kernel_size=(2, 2), stride=(2, 2))
+        self.batchnorm = nn.BatchNorm2d(out_channels)
+
+    def forward(self, g, x):
+        save_skipcon = x
+
+        g = self.conv_gating(g)
+        x = self.conv_skipcon(x)
+
+        #combined = torch.add(x, g)
+
+        #combined = self.relu(combined)
+        #combined = self.breakdown(combined)
+        #combined = self.sigmoid(combined)
+        #combined = self.up(combined)
+        #go = torch.multiply(self.up(self.sigmoid(self.breakdown(self.relu(torch.add(x, g))))), save_skipcon)
+        #return self.batchnorm(go)
+
+        return self.batchnorm(torch.multiply(self.up(self.sigmoid(self.breakdown(self.relu(torch.add(x, g))))), save_skipcon))
 
 
 class DoubleConv_Small(nn.Module):
@@ -74,37 +98,3 @@ class DoubleConv_Big(nn.Module):
         x = torch.add(x, save)
 
         return self.relu(x)
-
-
-class UnfanningAttention(nn.Module):
-    def __init__(self, in_channels, out_channels):
-        super(UnfanningAttention, self).__init__()
-
-        self.in_channels = in_channels
-        self.out_channels = out_channels
-
-        self.breakdown = nn.Conv2d(in_channels, 1, kernel_size=(1, 1))
-        self.batchnorm = nn.BatchNorm2d(out_channels)
-        self.relu = nn.ReLU(inplace=True)
-        self.sigmoid = nn.Sigmoid()
-        self.upsample = nn.ConvTranspose2d(1, out_channels, kernel_size=(1, 1))
-
-    def forward(self, small, big):
-        save = self.relu(torch.add(small, big))
-
-        skip = self.upsample(self.sigmoid(self.breakdown(save)))
-        # print("\n")
-
-        # multi_skip = torch.multiply(small_skip, big_skip)
-        # print(np.average(multi_skip.clone().detach().cpu().numpy()))
-
-        # multi_skip = torch.multiply(save, multi_skip)
-        # print(np.average(multi_skip.clone().detach().cpu().numpy()))
-
-        # multi_skip = self.batchnorm(multi_skip)
-        # print(np.average(multi_skip.clone().detach().cpu().numpy()))
-
-        # print(np.average(small_skip.detach().cpu().numpy())) 0.0016
-        # print(np.average(big_skip.detach().cpu().numpy()))"
-
-        return self.batchnorm(torch.multiply(save, skip))
