@@ -29,7 +29,7 @@ from torchmetrics.image import StructuralSimilarityIndexMeasure
 from metrics.zncc import zncc
 from metrics.ssim import custom_ssim
 
-from unet_fanned.model import UNET_FANNED
+from unet_fanned.model_v4 import UNET_FANNED
 
 import torchvision.transforms.functional as tf
 
