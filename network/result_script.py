@@ -64,6 +64,7 @@ def test(amount, model_path, test_data_path):
     running_mse = []
     running_ssim = []
     running_zncc = []
+    running_median = []
 
     loop = prog(loader)
 
@@ -84,7 +85,8 @@ def test(amount, model_path, test_data_path):
         running_mae.append(mae(prediction, target).item())
         running_mse.append(mse(prediction, target).item())
         running_zncc.append(zncc(prediction, target).item())
-        running_ssim.append(custom_ssim(prediction, target, ssim_metric=ssim).item())
+        running_ssim.append(custom_ssim(prediction, target).item())
+        running_median.append(abs(torch.median(target).item() - torch.median(prediction).item()))
 
         mae.reset()
         mse.reset()
@@ -125,7 +127,8 @@ def test(amount, model_path, test_data_path):
             running_mae[-1],
             running_mse[-1],
             running_ssim[-1],
-            running_zncc[-1]
+            running_zncc[-1],
+            running_median[-1]
         ), fontsize=24)
 
         walking_mae += running_mae[-1]
@@ -140,11 +143,12 @@ def test(amount, model_path, test_data_path):
         loop.set_postfix(info="MAE={:.4f}".format(walking_mae / c))
 
     file = open("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/results/mae1.txt", "w+")
-    file.write("MAE: {}, MSE: {}, SSIM: {}, ZNCC: {}".format(
+    file.write("MAE: {}, MSE: {}, SSIM: {}, ZNCC: {}, MEDAE: {}".format(
         str(s.mean(running_mae)),
         str(s.mean(running_mse)),
         str(s.mean(running_ssim)),
-        str(s.mean(running_zncc))
+        str(s.mean(running_zncc)),
+        str(s.mean(running_median))
     ))
     file.close()
 
