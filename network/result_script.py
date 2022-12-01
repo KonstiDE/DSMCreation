@@ -123,7 +123,7 @@ def test(amount, model_path, test_data_path):
         axs[2].set_yticklabels([])
         plt.colorbar(im, ax=axs[2])
 
-        fig.suptitle("MAE: {:.3f}, MSE: {:.3f}, SSIM: {:.3f}, ZNCC: {:.3f}".format(
+        fig.suptitle("MAE: {:.3f}, MSE: {:.3f}, SSIM: {:.3f}, ZNCC: {:.3f}, MEDAE: {:.3f}".format(
             running_mae[-1],
             running_mse[-1],
             running_ssim[-1],
