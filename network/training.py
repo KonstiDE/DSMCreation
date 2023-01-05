@@ -46,7 +46,7 @@ from network.metrics.ssim import custom_ssim
 from unet_fanned.model_v1 import UNET_FANNED
 
 
-def train(epoch, loader, loss_fn, optimizer, scaler, model, mse, ssim):
+def train(epoch, loader, loss_fn, optimizer, scaler, model, mse):
     torch.enable_grad()
     model.train()
 
@@ -85,7 +85,7 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model, mse, ssim):
         running_mae.append(loss_value)
         running_mse.append(mse(data, target).item())
         running_zncc.append(zncc(data, target).item())
-        running_ssim.append(custom_ssim(data, target, ssim).item())
+        running_ssim.append(custom_ssim(data, target).item())
 
         mse.reset()
         ssim.reset()
@@ -98,7 +98,7 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model, mse, ssim):
            s.mean(running_zncc)
 
 
-def valid(epoch, loader, loss_fn, model, mse, ssim):
+def valid(epoch, loader, loss_fn, model, mse):
     model.eval()
 
     loop = prog(loader)
@@ -131,10 +131,9 @@ def valid(epoch, loader, loss_fn, model, mse, ssim):
         running_mae.append(loss_value)
         running_mse.append(mse(data, target).item())
         running_zncc.append(zncc(data, target).item())
-        running_ssim.append(custom_ssim(data, target, ssim).item())
+        running_ssim.append(custom_ssim(data, target).item())
 
         mse.reset()
-        ssim.reset()
 
         loop.set_postfix(info="Epoch {}, valid, loss={:.5f}".format(epoch, loss_value))
         running_loss.append(loss_value)
@@ -156,7 +155,6 @@ def run(num_epochs, lr, epoch_to_start_from):
     path_validation = split['validation'][1]
 
     torch_mse = MeanSquaredError().to(device)
-    torch_ssim = StructuralSimilarityIndexMeasure(kernel_size=(5, 5)).to(device)
 
     epochs_done = 0
 
@@ -212,13 +210,13 @@ def run(num_epochs, lr, epoch_to_start_from):
     for epoch in range(epochs_done + 1, num_epochs + 1):
         training_loss, training_mae, training_mse, training_ssim, training_zncc = train(epoch, train_loader, loss_fn,
                                                                                         optimizer, scaler, model,
-                                                                                        torch_mse, torch_ssim)
+                                                                                        torch_mse)
         torch.cuda.empty_cache()
 
         validation_loss, validation_mae, validation_mse, validation_ssim, validation_zncc = valid(epoch,
                                                                                                   validation_loader,
                                                                                                   loss_fn, model,
-                                                                                                  torch_mse, torch_ssim)
+                                                                                                  torch_mse)
         torch.cuda.empty_cache()
 
         overall_training_loss.append(training_loss)
