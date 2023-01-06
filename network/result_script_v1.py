@@ -86,7 +86,7 @@ def test(amount, model_path, test_data_path):
         running_mse.append(mse(prediction, target).item())
         running_zncc.append(zncc(prediction, target).item())
         running_ssim.append(custom_ssim(prediction, target).item())
-        running_median.append(torch.median(torch.abs(data - target)).item())
+        running_median.append(torch.median(torch.abs(prediction - target)).item())
 
         mae.reset()
         mse.reset()
