@@ -1,4 +1,3 @@
-import numpy as np
 import torch
 import torch.nn as nn
 import torchvision.transforms.functional as tf
@@ -8,34 +7,10 @@ class UpConv(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(UpConv, self).__init__()
 
-        self.in_channels = in_channels
-
         self.up = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=(2, 2), stride=(2, 2))
 
-        self.conv_gating = nn.Conv2d(in_channels, out_channels, kernel_size=(1, 1), stride=(1, 1))
-        self.conv_skipcon = nn.Conv2d(int(in_channels / 2), out_channels, kernel_size=(1, 1), stride=(2, 2))
-        self.relu = nn.ReLU()
-        self.sigmoid = nn.Sigmoid()
-        self.breakdown = nn.Conv2d(int(in_channels / 2), 1, kernel_size=(1, 1))
-        self.up = nn.ConvTranspose2d(1, out_channels, kernel_size=(2, 2), stride=(2, 2))
-        self.batchnorm = nn.BatchNorm2d(out_channels)
-
-    def forward(self, g, x):
-        save_skipcon = x
-
-        g = self.conv_gating(g)
-        x = self.conv_skipcon(x)
-
-        #combined = torch.add(x, g)
-
-        #combined = self.relu(combined)
-        #combined = self.breakdown(combined)
-        #combined = self.sigmoid(combined)
-        #combined = self.up(combined)
-        #go = torch.multiply(self.up(self.sigmoid(self.breakdown(self.relu(torch.add(x, g))))), save_skipcon)
-        #return self.batchnorm(go)
-
-        return self.batchnorm(torch.multiply(self.up(self.sigmoid(self.breakdown(self.relu(torch.add(x, g))))), save_skipcon))
+    def forward(self, x):
+        return self.up(x)
 
 
 class DoubleConv_Small(nn.Module):
@@ -98,3 +73,26 @@ class DoubleConv_Big(nn.Module):
         x = torch.add(x, save)
 
         return self.relu(x)
+
+
+class ConvUnfanning(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(ConvUnfanning, self).__init__()
+
+        self.sigmoid = nn.Sigmoid()
+        self.psi = nn.Conv2d(out_channels, out_channels, kernel_size=(1, 1))
+        self.batchnorm = nn.BatchNorm2d(out_channels)
+        self.bigbatchnorm = nn.BatchNorm2d(in_channels)
+
+        self.unfanning = nn.Conv2d(in_channels, out_channels, kernel_size=(5, 5), padding=(2, 2), padding_mode='reflect')
+        self.batchnorm = nn.BatchNorm2d(out_channels)
+        self.relu = nn.ReLU(inplace=True)
+
+    def forward(self, x, y):
+        save = torch.add(x, y)
+
+        z = self.sigmoid(self.bigbatchnorm(self.psi(self.relu(torch.add(x, y)))))
+
+        z = torch.add(torch.multiply(z, save), save)
+
+        return self.relu(self.batchnorm(self.unfanning(z)))

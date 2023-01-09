@@ -3,10 +3,11 @@ import torch.nn as nn
 
 import torchvision.transforms.functional as tf
 
-from unet_fanned.layers import (
+from unet_fanned.layers_v4 import (
     DoubleConv_Small,
     DoubleConv_Big,
-    UpConv
+    UpConv,
+    ConvUnfanning
 )
 
 
@@ -18,15 +19,22 @@ class UNET_FANNED(nn.Module):
 
         self.down_convs_small = nn.ModuleList()
         self.down_convs_big = nn.ModuleList()
+        self.unfanning = nn.ModuleList()
         self.up_convs = nn.ModuleList()
         self.up_trans = nn.ModuleList()
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
 
-        self.final = nn.Conv2d(features[1], out_channels, kernel_size=(1, 1))
+        self.final = nn.Conv2d(features[2], out_channels, kernel_size=(1, 1))
+        self.bottleneck_unfanning = ConvUnfanning(features[-1], features[-1])
 
         for i in range(len(features) - 2):
             self.down_convs_small.append(DoubleConv_Small(features[i], features[i + 1]))
             self.down_convs_big.append(DoubleConv_Big(features[i], features[i + 1]))
+
+        for i in range(len(features) - 2):
+            self.unfanning.append(ConvUnfanning(features[i + 1], features[i + 1]))
+
+        self.unfanning = self.unfanning[::-1]
 
         self.bottleneck_small = DoubleConv_Small(features[-2], features[-1])
         self.bottleneck_big = DoubleConv_Big(features[-2], features[-1])
@@ -34,7 +42,11 @@ class UNET_FANNED(nn.Module):
         features = features[::-1]
 
         for i in range(len(features) - 2):
-            self.up_convs.append(DoubleConv_Small(features[i], features[i + 1]))
+            if i != (len(features) - 3):
+                self.up_convs.append(DoubleConv_Small(features[i], features[i + 1]))
+            else:
+                self.up_convs.append(DoubleConv_Small(features[i], features[i]))
+
             self.up_trans.append(UpConv(features[i], features[i + 1]))
 
     def forward(self, x, y):
@@ -54,7 +66,7 @@ class UNET_FANNED(nn.Module):
         x = self.bottleneck_small(x)
         y = self.bottleneck_big(y)
 
-        bottleneck_unfanned = torch.add(x, y)
+        bottleneck_unfanned = self.bottleneck_unfanning(x, y)
 
         skip_connections_small = skip_connections_small[::-1]
         skip_connections_big = skip_connections_big[::-1]
@@ -62,10 +74,10 @@ class UNET_FANNED(nn.Module):
         skip_connections_unfanned = []
 
         for i in range(len(skip_connections_small)):
-            skip_connections_unfanned.append(torch.add(skip_connections_small[i], skip_connections_big[i]))
+            skip_connections_unfanned.append(self.unfanning[i](skip_connections_small[i], skip_connections_big[i]))
 
         for i in range(len(self.up_convs)):
-            bottleneck_unfanned = self.up_trans[i](bottleneck_unfanned, skip_connections_unfanned[i])
+            bottleneck_unfanned = self.up_trans[i](bottleneck_unfanned)
 
             bottleneck_unfanned = torch.cat((bottleneck_unfanned, skip_connections_unfanned[i]), dim=1)
             bottleneck_unfanned = self.up_convs[i](bottleneck_unfanned)
