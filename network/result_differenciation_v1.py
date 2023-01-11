@@ -42,7 +42,7 @@ shutup.please()
 
 def test(amount, model_path, test_data_path):
     unet = UNET_FANNED(in_channels=4, out_channels=1)
-    unet.load_state_dict(torch.load(model_path)['model_state_dict'])
+    unet.load_state_dict(torch.load(model_path, map_location='cpu')['model_state_dict'])
     unet.to(device)
 
     unet.eval()
@@ -60,11 +60,17 @@ def test(amount, model_path, test_data_path):
 
     walking_mae = 0
 
-    running_mae = []
-    running_mse = []
-    running_ssim = []
-    running_zncc = []
-    running_median = []
+    matrix = [
+        [[], [], [], [], []],
+        [[], [], [], [], []],
+        [[], [], [], [], []],
+        [[], [], [], [], []],
+        [[], [], [], [], []],
+        [[], [], [], [], []],
+        [[], [], [], [], []],
+        [[], [], [], [], []],
+        [[], [], [], [], []],
+    ]
 
     loop = prog(loader)
 
@@ -77,57 +83,117 @@ def test(amount, model_path, test_data_path):
         prediction = unet(data)
         prediction[prediction < 0] = 0
 
-        target = target.unsqueeze(1).to(device)
+        target = target.unsqueeze(1)
 
-        prediction = tf.center_crop(prediction, [500, 500])
-        target = tf.center_crop(target, [500, 500])
+        prediction = tf.center_crop(prediction, [500, 500]).cpu()
+        target = tf.center_crop(target, [500, 500]).cpu()
 
-        target_building_density = building_desity(target)
-
-        running_mae.append(mae(prediction, target).item())
-        running_mse.append(mse(prediction, target).item())
-        running_zncc.append(zncc(prediction, target).item())
-        running_ssim.append(custom_ssim(prediction, target).item())
-        running_median.append(torch.median(torch.abs(prediction - target)).item())
+        torch_mae = mae(prediction, target).item()
+        torch_mse = mse(prediction, target).item()
+        torch_zncc = zncc(prediction, target).item()
+        torch_ssim = custom_ssim(prediction, target).item()
+        torch_medae = torch.median(torch.abs(prediction - target)).item()
 
         mae.reset()
         mse.reset()
         ssim.reset()
 
-        prediction = prediction.squeeze(0).squeeze(0).detach().cpu()
-        target = target.squeeze(0).squeeze(0).detach().cpu()
+        target = target.squeeze(0).squeeze(0).detach().numpy()
 
+        target_building_density = building_density(target)
+        target_build_height = building_height(target)
 
+        class_index = matrix_index((target_building_density, target_build_height))
 
-        walking_mae += running_mae[-1]
-
-        plt.savefig(
-            "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/results/" + os.path.basename(src_path[0]) + ".png"
-        )
-        plt.close(fig)
+        matrix[class_index][0].append(torch_mae)
+        matrix[class_index][1].append(torch_mse)
+        matrix[class_index][2].append(torch_ssim)
+        matrix[class_index][3].append(torch_zncc)
+        matrix[class_index][4].append(torch_medae)
 
         c += 1
 
-        loop.set_postfix(info="MAE={:.4f}".format(walking_mae / c))
+    file = open("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/results/mae2.txt", "w+")
 
-    file = open("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/results/mae1.txt", "w+")
-    file.write("MAE: {}, MSE: {}, SSIM: {}, ZNCC: {}, MEDAE: {}".format(
-        str(s.mean(running_mae)),
-        str(s.mean(running_mse)),
-        str(s.mean(running_ssim)),
-        str(s.mean(running_zncc)),
-        str(s.mean(running_median))
-    ))
+    for index in range(9):
+        density, height = matrix_index_rev(index)
+
+        file.write("Density: {}, Height: {} | MAE: {}, MSE: {}, SSIM: {}, ZNCC: {}, MEDAE: {}\n".format(
+            density,
+            height,
+            str(s.mean(matrix[index][0])),
+            str(s.mean(matrix[index][1])),
+            str(s.mean(matrix[index][2])),
+            str(s.mean(matrix[index][3])),
+            str(s.mean(matrix[index][4]))
+        ))
     file.close()
 
 
-def building_desity(dsm):
-    return torch.numel()
+def building_density(dsm):
+    density = round((dsm >= 1).sum()  / 500**2 * 100)
+
+    if density > 65:
+        return 2
+    elif density > 10:
+        return 1
+    else:
+        return 0
+
 
 
 def building_height(dsm):
-    return
+    dsm[dsm > 100] = 100
+    height = round(dsm.max())
 
+    if height > 45:
+        return 2
+    elif height > 15:
+        return 1
+    else:
+        return 0
+
+
+def matrix_index(tupel):
+    if tupel == (0, 0):
+        return 0
+    elif tupel == (0, 1):
+        return 1
+    elif tupel == (0, 2):
+        return 2
+    elif tupel == (1, 0):
+        return 3
+    elif tupel == (1, 1):
+        return 4
+    elif tupel == (1, 2):
+        return 5
+    elif tupel == (2, 0):
+        return 6
+    elif tupel == (2, 1):
+        return 7
+    elif tupel == (2, 2):
+        return 8
+
+
+def matrix_index_rev(index):
+    if index == 0:
+        return 0, 0
+    if index == 1:
+        return 0, 1
+    if index == 2:
+        return 0, 2
+    if index == 3:
+        return 1, 0
+    if index == 4:
+        return 1, 1
+    if index == 5:
+        return 1, 2
+    if index == 6:
+        return 2, 0
+    if index == 7:
+        return 2, 1
+    if index == 8:
+        return 2, 2
 
 if __name__ == '__main__':
     test(
