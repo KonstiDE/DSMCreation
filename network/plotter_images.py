@@ -1,3 +1,5 @@
+import math
+
 import matplotlib.pyplot as plt
 import numpy
 import numpy as np
@@ -8,7 +10,7 @@ from tqdm.auto import tqdm as prog
 import torch
 import torch.nn as nn
 
-from network.unet_fanned.model_v1 import UNET_FANNED
+from unet_fanned.model_v1 import UNET_FANNED
 from provider.dataset_provider import get_dataset
 
 import importlib.util
@@ -81,13 +83,13 @@ def perform_tests(loader, models, multiencoders, sample_ids=None):
 
                     data = data.squeeze(0).cpu()
                     red = crop_center(data[0].numpy(), 500)
-                    red_normalized = (red * (255 / red.max())).astype(np.uint8)
+                    red_normalized = (red * (1 / red.max()))
                     green = crop_center(data[1].numpy(), 500)
-                    green_normalized = (green * (255 / green.max())).astype(np.uint8)
+                    green_normalized = (green * (1 / green.max()))
                     blue = crop_center(data[2].numpy(), 500)
-                    blue_normalized = (blue * (255 / blue.max())).astype(np.uint8)
+                    blue_normalized = (blue * (1 / blue.max()))
 
-                    beauty = np.dstack((red_normalized, green_normalized, blue_normalized))
+                    beauty = np.dstack((blue_normalized, green_normalized, red_normalized))
 
                     target = crop_center(target, 500)
 
@@ -127,12 +129,12 @@ def perform_tests(loader, models, multiencoders, sample_ids=None):
                 im.set_clim(0, max(prediction.max(), target.max()))
                 for t in cbar.ax.get_yticklabels():
                     t.set_fontsize(26)
-                axs[h, 2 + i].set_xlabel("MAE: {:.2f}\nMSE: {:.2f}".format(mae, mse), fontsize=30)
+                axs[h, 2 + i].set_xlabel("MAE: {:.2f}\nRMSE: {:.2f}".format(mae, math.sqrt(mse)), fontsize=30)
 
             h += 1
 
         plt.tight_layout()
-        plt.savefig("/home/fkt48uj/nrw/results/visual_results_{}.png".format(height), dpi=600)
+        plt.savefig("/home/fkt48uj/nrw/results/visual_results_{}.png".format(height), dpi=400)
 
 
 def setup():
@@ -148,7 +150,7 @@ def setup():
 
     perform_tests(
         test_loader,
-        [unet_v1, unet_v2, unet_v3],
+        [unet_v1, unet_v3, unet_v2],
         [False, True, True],
         [
             #urban:
@@ -163,7 +165,6 @@ def setup():
             "ndom50_32352_5753_1_nw_2018_14~SENTINEL2X_20180315-000000-000_L3A_T32ULC_C_V1-2.npz",
             #vegetation:
             "ndom50_32351_5650_1_nw_2019_8~SENTINEL2X_20190615-000000-000_L3A_T32ULB_C_V1-2.npz",
-            "ndom50_32339_5735_1_nw_2018_15~SENTINEL2X_20180515-000000-000_L3A_T32ULC_C_V1-2.npz",
         ]
     )
 
