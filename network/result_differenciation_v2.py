@@ -29,7 +29,7 @@ from torchmetrics.image import StructuralSimilarityIndexMeasure
 from metrics.zncc import zncc
 from metrics.ssim import custom_ssim
 
-from unet_fanned.model_v1 import UNET_FANNED
+from unet_fanned.model_v2 import UNET_FANNED
 
 import torchvision.transforms.functional as tf
 
@@ -80,7 +80,7 @@ def test(amount, model_path, test_data_path):
         data[data < 0] = 0
         target[target < 0] = 0
 
-        prediction = unet(data)
+        prediction = unet(data,data)
         prediction[prediction < 0] = 0
 
         target = target.unsqueeze(1)
