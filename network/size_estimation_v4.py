@@ -17,6 +17,8 @@ from network.helper.network_helper import (
 
 from unet_fanned.model_v4 import UNET_FANNED
 
+from ptflops import get_model_complexity_info
+
 def estimate():
     torch.cuda.empty_cache()
 
@@ -31,6 +33,11 @@ def estimate():
 
     size_all_mb = (param_size + buffer_size) / 1024 ** 2
     print('model size: {:.3f}MB'.format(size_all_mb))
+
+    macs, params = get_model_complexity_info(model, (4, 512, 512), as_strings=True,
+                                             print_per_layer_stat=False, verbose=True)
+    print('{:<30}  {:<8}'.format('Computational complexity: ', macs))
+    print('{:<30}  {:<8}'.format('Number of parameters: ', params))
 
 
 if __name__ == '__main__':
