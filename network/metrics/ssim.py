@@ -12,7 +12,7 @@ shutup.please()
 from torchmetrics.image import StructuralSimilarityIndexMeasure
 
 
-ssim_metric = StructuralSimilarityIndexMeasure(kernel_size=(5, 5))
+ssim_metric = StructuralSimilarityIndexMeasure(kernel_size=(5, 5)).to(device)
 
 
 def custom_ssim(data, target):
