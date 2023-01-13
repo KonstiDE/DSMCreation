@@ -58,8 +58,6 @@ def test(amount, model_path, test_data_path):
     mse = MeanSquaredError().to(device)
     ssim = StructuralSimilarityIndexMeasure(kernel_size=(5, 5)).to(device)
 
-    walking_mae = 0
-
     matrix = [
         [[], [], [], [], []],
         [[], [], [], [], []],
@@ -70,6 +68,18 @@ def test(amount, model_path, test_data_path):
         [[], [], [], [], []],
         [[], [], [], [], []],
         [[], [], [], [], []],
+    ]
+
+    mean_matrix = [
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
     ]
 
     loop = prog(loader)
@@ -127,15 +137,24 @@ def test(amount, model_path, test_data_path):
             str(s.mean(matrix[index][3])),
             str(s.mean(matrix[index][4]))
         ))
+
+        # mean_matrix[index][0] = s.mean(matrix[index][0])
+        # mean_matrix[index][1] = s.mean(matrix[index][1])
+        # mean_matrix[index][2] = s.mean(matrix[index][2])
+        # mean_matrix[index][3] = s.mean(matrix[index][3])
+        # mean_matrix[index][4] = s.mean(matrix[index][4])
+
     file.close()
+
+
 
 
 def building_density(dsm):
     density = round((dsm >= 1).sum()  / 500**2 * 100)
 
-    if density > 65:
+    if density > 33:
         return 2
-    elif density > 10:
+    elif density > 2:
         return 1
     else:
         return 0
@@ -143,12 +162,11 @@ def building_density(dsm):
 
 
 def building_height(dsm):
-    dsm[dsm > 100] = 100
-    height = round(dsm.max())
+    height = round(np.quantile(dsm, 0.95))
 
-    if height > 45:
+    if height > 12:
         return 2
-    elif height > 15:
+    elif height > 1:
         return 1
     else:
         return 0
