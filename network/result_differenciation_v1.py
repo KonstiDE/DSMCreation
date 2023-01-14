@@ -150,11 +150,11 @@ def test(amount, model_path, test_data_path):
 
 
 def building_density(dsm):
-    density = round((dsm >= 1).sum()  / 500**2 * 100)
+    density = (dsm >= 1).sum()  / 500**2 * 100
 
-    if density > 33:
+    if density > 61.5824:
         return 2
-    elif density > 2:
+    elif density > 27.0352:
         return 1
     else:
         return 0
@@ -162,11 +162,11 @@ def building_density(dsm):
 
 
 def building_height(dsm):
-    height = round(np.quantile(dsm, 0.95))
+    height = np.quantile(dsm, 0.95)
 
-    if height > 12:
+    if height > 20.184:
         return 2
-    elif height > 1:
+    elif height > 8.187:
         return 1
     else:
         return 0
