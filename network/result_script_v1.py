@@ -105,7 +105,7 @@ def test(amount, model_path, test_data_path):
 
         beauty = np.dstack((red_normalized, green_normalized, blue_normalized))
 
-        fig, axs = plt.subplots(1, 3, figsize=(21, 5))
+        fig, axs = plt.subplots(1, 4, figsize=(25, 5))
 
         im = axs[0].imshow(beauty)
         axs[0].set_xticklabels([])
@@ -122,6 +122,15 @@ def test(amount, model_path, test_data_path):
         axs[2].set_xticklabels([])
         axs[2].set_yticklabels([])
         plt.colorbar(im, ax=axs[2])
+
+        im = axs[3].imshow(abs(data - target), cmap="turbo")
+        axs[2].set_xticklabels([])
+        axs[2].set_yticklabels([])
+        plt.colorbar(im, ax=axs[3])
+
+        plt.show()
+
+        exit(1)
 
         fig.suptitle("MAE: {:.3f}, MSE: {:.3f}, SSIM: {:.3f}, ZNCC: {:.3f}, MEDAE: {:.3f}".format(
             running_mae[-1],
