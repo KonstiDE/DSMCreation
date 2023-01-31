@@ -27,11 +27,11 @@ sys.modules["module.name"] = foo_v2
 spec_v2.loader.exec_module(foo_v2)
 unet_v2 = foo_v2.UNET_FANNED(in_channels=4, out_channels=1)
 
-spec_v3 = importlib.util.spec_from_file_location("module.name", "/home/fkt48uj/nrw/network/unet_fanned/model_v3.py")
-foo_v3 = importlib.util.module_from_spec(spec_v3)
-sys.modules["module.name"] = foo_v3
-spec_v3.loader.exec_module(foo_v3)
-unet_v3 = foo_v3.UNET_FANNED(in_channels=4, out_channels=1)
+spec_v4 = importlib.util.spec_from_file_location("module.name", "/home/fkt48uj/nrw/network/unet_fanned/model_v4.py")
+foo_v4 = importlib.util.module_from_spec(spec_v4)
+sys.modules["module.name"] = foo_v4
+spec_v4.loader.exec_module(foo_v4)
+unet_v4 = foo_v4.UNET_FANNED(in_channels=4, out_channels=1)
 
 
 warnings.filterwarnings("ignore")
@@ -39,7 +39,7 @@ warnings.filterwarnings("ignore")
 DATA_PATH = "/home/fkt48uj/nrw/dataset/data/test/"
 MODEL_PATH_V1 = "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/model_epoch18.pt"
 MODEL_PATH_V2 = "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v2/model_epoch19.pt"
-MODEL_PATH_V3 = "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v3/model_epoch18.pt"
+MODEL_PATH_V4 = "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v4/model_epoch24.pt"
 BATCH_SIZE = 1
 DEVICE = "cuda:0"
 px = 1 / plt.rcParams['figure.dpi']
@@ -142,15 +142,15 @@ def setup():
 
     unet_v1.load_state_dict(torch.load(MODEL_PATH_V1, map_location='cpu')['model_state_dict'])
     unet_v2.load_state_dict(torch.load(MODEL_PATH_V2, map_location='cpu')['model_state_dict'])
-    unet_v3.load_state_dict(torch.load(MODEL_PATH_V3, map_location='cpu')['model_state_dict'])
+    unet_v4.load_state_dict(torch.load(MODEL_PATH_V4, map_location='cpu')['model_state_dict'])
 
     unet_v1.eval()
     unet_v2.eval()
-    unet_v3.eval()
+    unet_v4.eval()
 
     perform_tests(
         test_loader,
-        [unet_v1, unet_v3, unet_v2],
+        [unet_v1, unet_v4, unet_v2],
         [False, True, True],
         [
             #urban:
