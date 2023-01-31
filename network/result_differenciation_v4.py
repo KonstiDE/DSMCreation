@@ -198,6 +198,6 @@ def matrix_index_rev(index):
 if __name__ == '__main__':
     test(
         0,
-        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v4/model_epoch10.pt",
+        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v4/model_epoch24.pt",
         "/home/fkt48uj/nrw/dataset/data/test/"
     )
