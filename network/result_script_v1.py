@@ -123,14 +123,10 @@ def test(amount, model_path, test_data_path):
         axs[2].set_yticklabels([])
         plt.colorbar(im, ax=axs[2])
 
-        im = axs[3].imshow(abs(data - target), cmap="turbo")
+        im = axs[3].imshow(abs(prediction - target), cmap="turbo")
         axs[2].set_xticklabels([])
         axs[2].set_yticklabels([])
         plt.colorbar(im, ax=axs[3])
-
-        plt.show()
-
-        exit(1)
 
         fig.suptitle("MAE: {:.3f}, MSE: {:.3f}, SSIM: {:.3f}, ZNCC: {:.3f}, MEDAE: {:.3f}".format(
             running_mae[-1],
