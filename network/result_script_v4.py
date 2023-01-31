@@ -56,6 +56,7 @@ def test(amount, model_path, test_data_path):
 
     mae = MeanAbsoluteError().to(device)
     mse = MeanSquaredError().to(device)
+    ssim = StructuralSimilarityIndexMeasure(kernel_size=(5, 5)).to(device)
 
     walking_mae = 0
 
@@ -63,6 +64,7 @@ def test(amount, model_path, test_data_path):
     running_mse = []
     running_ssim = []
     running_zncc = []
+    running_median = []
 
     loop = prog(loader)
 
@@ -84,9 +86,11 @@ def test(amount, model_path, test_data_path):
         running_mse.append(mse(prediction, target).item())
         running_zncc.append(zncc(prediction, target).item())
         running_ssim.append(custom_ssim(prediction, target).item())
+        running_median.append(torch.median(torch.abs(prediction - target)).item())
 
         mae.reset()
         mse.reset()
+        ssim.reset()
 
         prediction = prediction.squeeze(0).squeeze(0).detach().cpu()
         target = target.squeeze(0).squeeze(0).detach().cpu()
@@ -101,7 +105,7 @@ def test(amount, model_path, test_data_path):
 
         beauty = np.dstack((red_normalized, green_normalized, blue_normalized))
 
-        fig, axs = plt.subplots(1, 3, figsize=(21, 5))
+        fig, axs = plt.subplots(1, 4, figsize=(25, 5))
 
         im = axs[0].imshow(beauty)
         axs[0].set_xticklabels([])
@@ -119,11 +123,17 @@ def test(amount, model_path, test_data_path):
         axs[2].set_yticklabels([])
         plt.colorbar(im, ax=axs[2])
 
-        fig.suptitle("MAE: {:.3f}, MSE: {:.3f}, SSIM: {:.3f}, ZNCC: {:.3f}".format(
+        im = axs[3].imshow(abs(prediction - target), cmap="turbo")
+        axs[2].set_xticklabels([])
+        axs[2].set_yticklabels([])
+        plt.colorbar(im, ax=axs[3])
+
+        fig.suptitle("MAE: {:.3f}, MSE: {:.3f}, SSIM: {:.3f}, ZNCC: {:.3f}, MEDAE: {:.3f}".format(
             running_mae[-1],
             running_mse[-1],
             running_ssim[-1],
-            running_zncc[-1]
+            running_zncc[-1],
+            running_median[-1]
         ), fontsize=24)
 
         walking_mae += running_mae[-1]
@@ -138,11 +148,12 @@ def test(amount, model_path, test_data_path):
         loop.set_postfix(info="MAE={:.4f}".format(walking_mae / c))
 
     file = open("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v4/results/mae1.txt", "w+")
-    file.write("MAE: {}, MSE: {}, SSIM: {}, ZNCC: {}".format(
+    file.write("MAE: {}, MSE: {}, SSIM: {}, ZNCC: {}, MEDAE: {}".format(
         str(s.mean(running_mae)),
         str(s.mean(running_mse)),
         str(s.mean(running_ssim)),
-        str(s.mean(running_zncc))
+        str(s.mean(running_zncc)),
+        str(s.mean(running_median))
     ))
     file.close()
 
@@ -150,6 +161,6 @@ def test(amount, model_path, test_data_path):
 if __name__ == '__main__':
     test(
         0,
-        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v4/model_epoch18.pt",
+        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v4/model_epoch24.pt",
         "/home/fkt48uj/nrw/dataset/data/test/"
     )
