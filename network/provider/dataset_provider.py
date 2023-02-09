@@ -11,6 +11,7 @@ class NrwDataSet(Dataset):
 
         c = 0
         self.dataset = []
+        self.dir = npz_dir
         for file in os.listdir(npz_dir):
             if not outliers.__contains__(file):
 
@@ -42,6 +43,23 @@ class NrwDataSet(Dataset):
         dsm = torch.Tensor(dom)
 
         return sentinel, dsm, dataframepath
+
+    def __getitem_by_name__(self, name):
+        dataframepath = self.dataset[self.dataset.index(os.path.join(self.dir, name))]
+        print(dataframepath)
+        dataframe = np.load(dataframepath, allow_pickle=True)
+
+        red = dataframe["red"]
+        green = dataframe["green"]
+        blue = dataframe["blue"]
+        nir = dataframe["nir"]
+        dsm = dataframe["dom"]
+
+        sentinel = np.stack((red, green, blue, nir))
+
+        sentinel = torch.Tensor(sentinel)
+
+        return sentinel, dsm
 
 
 def get_loader(npz_dir, batch_size, num_workers=2, pin_memory=True, shuffle=True, amount=0):
