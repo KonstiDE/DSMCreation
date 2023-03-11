@@ -89,7 +89,7 @@ def perform_tests(loader, models, multiencoders, sample_ids=None):
                     blue = crop_center(data[2].numpy(), 500)
                     blue_normalized = (blue * (1 / blue.max()))
 
-                    beauty = np.dstack((blue_normalized, green_normalized, red_normalized))
+                    beauty = np.dstack((red_normalized, green_normalized, blue_normalized))
 
                     target = crop_center(target, 500)
 
