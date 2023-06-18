@@ -15,7 +15,7 @@ from network.helper.network_helper import (
     device
 )
 
-from unet_fanned.model_v4 import UNET_FANNED
+from unet_fanned.model_pl import UNET_FANNED
 
 from ptflops import get_model_complexity_info
 

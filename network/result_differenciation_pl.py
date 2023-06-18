@@ -51,8 +51,8 @@ def test(amount, model_path, test_data_path):
     loader = get_loader(test_data_path, 1, num_workers, pin_memory, amount=amount, shuffle=False)
     c = 0
 
-    if not os.path.exists("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v4/results"):
-        os.mkdir("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v4/results")
+    if not os.path.exists("/home/fkt48uj/nrw/results_L1Loss_Adam_PLNet/results"):
+        os.mkdir("/home/fkt48uj/nrw/results_L1Loss_Adam_PLNet/results")
 
     mae = MeanAbsoluteError().to(device)
     mse = MeanSquaredError().to(device)

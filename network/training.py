@@ -43,7 +43,7 @@ from network.provider.pytorchtools import (
 from network.metrics.zncc import zncc
 from network.metrics.ssim import custom_ssim
 
-from unet_fanned.model_v4 import UNET_FANNED
+from unet_fanned.model_pl import PLNET
 
 
 def train(epoch, loader, loss_fn, optimizer, scaler, model, mse):
@@ -65,7 +65,7 @@ def train(epoch, loader, loss_fn, optimizer, scaler, model, mse):
         data[data < 0] = 0
         target[target < 0] = 0
 
-        data = model(data, data)
+        data = model(data)
         data[data < 0] = 0
 
         target = target.unsqueeze(1).to(device)
@@ -114,7 +114,7 @@ def valid(epoch, loader, loss_fn, model, mse):
         data[data < 0] = 0
         target[target < 0] = 0
 
-        data = model(data, data)
+        data = model(data)
         data[data < 0] = 0
 
         target = target.unsqueeze(1).to(device)
@@ -145,7 +145,7 @@ def valid(epoch, loader, loss_fn, model, mse):
 def run(num_epochs, lr, epoch_to_start_from):
     torch.cuda.empty_cache()
 
-    model = UNET_FANNED(in_channels=4, out_channels=1).to(device)
+    model = PLNET(in_channels=4, out_channels=1).to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=5e-4)
     loss_fn = nn.L1Loss()
     scaler = torch.cuda.amp.GradScaler()
@@ -169,11 +169,11 @@ def run(num_epochs, lr, epoch_to_start_from):
     overall_training_zncc = []
     overall_validation_zncc = []
 
-    path = "{}_{}_{}_{}_v4/".format(
+    path = "{}_{}_{}_{}_pl/".format(
         "results",
         str(loss_fn.__class__.__name__),
         str(optimizer.__class__.__name__),
-        str(UNET_FANNED.__qualname__)
+        str(PLNET.__qualname__)
     )
 
     if not os.path.isdir(path):

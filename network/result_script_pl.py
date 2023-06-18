@@ -29,7 +29,7 @@ from torchmetrics.image import StructuralSimilarityIndexMeasure
 from metrics.zncc import zncc
 from metrics.ssim import custom_ssim
 
-from unet_fanned.model_v4 import UNET_FANNED
+from unet_fanned.model_pl import UNET_FANNED
 
 import torchvision.transforms.functional as tf
 
@@ -51,8 +51,8 @@ def test(amount, model_path, test_data_path):
     loader = get_loader(test_data_path, 1, num_workers, pin_memory, amount=amount, shuffle=False)
     c = 0
 
-    if not os.path.exists("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v4/results"):
-        os.mkdir("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v4/results")
+    if not os.path.exists("/home/fkt48uj/nrw/results_L1Loss_Adam_PLNet/results"):
+        os.mkdir("/home/fkt48uj/nrw/results_L1Loss_Adam_PLNet/results")
 
     mae = MeanAbsoluteError().to(device)
     mse = MeanSquaredError().to(device)
@@ -74,7 +74,7 @@ def test(amount, model_path, test_data_path):
         data[data < 0] = 0
         target[target < 0] = 0
 
-        prediction = unet(data, data)
+        prediction = unet(data)
         prediction[prediction < 0] = 0
 
         target = target.unsqueeze(1).to(device)
@@ -139,7 +139,7 @@ def test(amount, model_path, test_data_path):
         walking_mae += running_mae[-1]
 
         plt.savefig(
-            "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v4/results/" + os.path.basename(src_path[0]) + ".png"
+            "/home/fkt48uj/nrw/results_L1Loss_Adam_PLNet/results/" + os.path.basename(src_path[0]) + ".png"
         )
         plt.close(fig)
 
@@ -147,7 +147,7 @@ def test(amount, model_path, test_data_path):
 
         loop.set_postfix(info="MAE={:.4f}".format(walking_mae / c))
 
-    file = open("/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v4/results/mae1.txt", "w+")
+    file = open("/home/fkt48uj/nrw/results_L1Loss_Adam_PLNet/results/mae1.txt", "w+")
     file.write("MAE: {}, MSE: {}, SSIM: {}, ZNCC: {}, MEDAE: {}".format(
         str(s.mean(running_mae)),
         str(s.mean(running_mse)),
@@ -161,6 +161,6 @@ def test(amount, model_path, test_data_path):
 if __name__ == '__main__':
     test(
         0,
-        "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v4/model_epoch24.pt",
+        "/home/fkt48uj/nrw/results_L1Loss_Adam_PLNet/model_epoch24.pt",
         "/home/fkt48uj/nrw/dataset/data/test/"
     )
