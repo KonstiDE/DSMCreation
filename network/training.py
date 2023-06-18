@@ -43,7 +43,7 @@ from network.provider.pytorchtools import (
 from network.metrics.zncc import zncc
 from network.metrics.ssim import custom_ssim
 
-from unet_fanned.model_pl import PLNET
+from unet_fanned.model_im2height import IM2HEIGHT
 
 
 def train(epoch, loader, loss_fn, optimizer, scaler, model, mse):
@@ -145,7 +145,7 @@ def valid(epoch, loader, loss_fn, model, mse):
 def run(num_epochs, lr, epoch_to_start_from):
     torch.cuda.empty_cache()
 
-    model = PLNET(in_channels=4, out_channels=1).to(device)
+    model = IM2HEIGHT().to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=5e-4)
     loss_fn = nn.L1Loss()
     scaler = torch.cuda.amp.GradScaler()
@@ -173,7 +173,7 @@ def run(num_epochs, lr, epoch_to_start_from):
         "results",
         str(loss_fn.__class__.__name__),
         str(optimizer.__class__.__name__),
-        str(PLNET.__qualname__)
+        str(IM2HEIGHT.__qualname__)
     )
 
     if not os.path.isdir(path):
