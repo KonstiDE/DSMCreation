@@ -34,7 +34,7 @@ class Block(nn.Module):
         self.conv_rest = fn(out_channels, out_channels, kernel_size, stride, padding)
         self.bn = nn.BatchNorm2d(out_channels)
         # following similar setup https://github.com/hysts/pytorch_resnet
-        self.identity = nn.Sequential()  # identity
+        self.identity = nn.Sequential()
         if in_channels != out_channels:
             self.identity.add_module(
                 'conv',
@@ -42,17 +42,23 @@ class Block(nn.Module):
                     in_channels,
                     out_channels,
                     kernel_size=1,
-                    stride=stride,  # downsample
+                    stride=stride,
                     padding=0,
                     bias=False))
             self.identity.add_module('bn', nn.BatchNorm2d(out_channels))  # BN
 
     def forward(self, x):
-        y = F.relu(self.bn(self.conv1(x)))
-        y = F.relu(self.bn(self.conv_rest(y)))
+        y = F.relu(self.bn(self.conv1(x)), inplace=False)
+        y = F.relu(self.bn(self.conv_rest(y)), inplace=False)
         y = self.bn(self.conv_rest(y))
-        identity = self.identity(x)
-        y = F.relu(y + identity)
+
+        identity = x.clone()
+        identity = self.identity(identity)
+
+        y = F.relu(y)
+        identity = F.relu(identity)
+
+        y = y + identity
 
         return y
 
@@ -80,7 +86,7 @@ class IM2HEIGHT(nn.Module):
         # Convolve
         x = self.conv1(x)
         # Residual skip connection
-        x_conv_input = x.clone()
+        x_conv_input = x
         x, indices1, size1 = self.pool(x)
         x, indices2, size2 = self.pool(self.conv2(x))
         x, indices3, size3 = self.pool(self.conv3(x))
@@ -105,7 +111,7 @@ class IM2HEIGHT(nn.Module):
 if __name__ == '__main__':
     im2height = IM2HEIGHT()
 
-    a = torch.randn(1, 4, 512, 512)
+    a = torch.randn(8, 4, 512, 512)
     out = im2height(a)
 
     print(out.shape)
