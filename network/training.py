@@ -42,6 +42,8 @@ from network.metrics.ssim import custom_ssim
 
 from unet_fanned.model_im2height import IM2HEIGHT
 
+from unet_fanned.model_adabins import UnetAdaptiveBins
+
 
 def train(epoch, loader, loss_fn, optimizer, scaler, model, mse):
     torch.enable_grad()
@@ -141,10 +143,9 @@ def valid(epoch, loader, loss_fn, model, mse):
 
 def run(num_epochs, lr, epoch_to_start_from):
     torch.cuda.empty_cache()
-    torch.autograd.set_detect_anomaly(True)
 
-    model = IM2HEIGHT().to(device)
-    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=0.004)
+    model = UnetAdaptiveBins.build(25).to(device)
+    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=5e-4)
     loss_fn = nn.L1Loss()
     scaler = torch.cuda.amp.GradScaler()
     early_stopping = EarlyStopping(patience=5, verbose=True)
@@ -167,11 +168,11 @@ def run(num_epochs, lr, epoch_to_start_from):
     overall_training_zncc = []
     overall_validation_zncc = []
 
-    path = "{}_{}_{}_{}_pl/".format(
+    path = "{}_{}_{}_{}_ada/".format(
         "results",
         str(loss_fn.__class__.__name__),
         str(optimizer.__class__.__name__),
-        str(IM2HEIGHT.__qualname__)
+        str(UnetAdaptiveBins.__qualname__)
     )
 
     if not os.path.isdir(path):
@@ -274,4 +275,4 @@ def run(num_epochs, lr, epoch_to_start_from):
 
 
 if __name__ == '__main__':
-    run(num_epochs=100, lr=0.00002, epoch_to_start_from=0)
+    run(num_epochs=100, lr=5e-06, epoch_to_start_from=0)

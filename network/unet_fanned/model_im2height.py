@@ -52,15 +52,9 @@ class Block(nn.Module):
         y = F.relu(self.bn(self.conv_rest(y)), inplace=False)
         y = self.bn(self.conv_rest(y))
 
-        identity = x.clone()
-        identity = self.identity(identity)
+        x = self.identity(x)
 
-        y = F.relu(y)
-        identity = F.relu(identity)
-
-        y = y + identity
-
-        return y
+        return F.relu(y) + F.relu(x)
 
 
 class IM2HEIGHT(nn.Module):
@@ -101,11 +95,7 @@ class IM2HEIGHT(nn.Module):
         x = self.deconv3(x)
         x = self.unpool(x, indices1, x_conv_input.size())
 
-        # Concatenate with residual skip connection
-        x = torch.cat((x, x_conv_input), dim=1)
-        x = self.deconv4(x)
-
-        return x
+        return self.deconv4(torch.cat((x, x_conv_input), dim=1))
 
 
 if __name__ == '__main__':
