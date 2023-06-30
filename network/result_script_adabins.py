@@ -41,8 +41,10 @@ shutup.please()
 
 
 def test(amount, model_path, test_data_path):
-    unet = UnetAdaptiveBins(in_channels=4, out_channels=1)
-    unet.load_state_dict(torch.load(model_path)['model_state_dict'])
+    torch.cuda.empty_cache()
+
+    unet = UnetAdaptiveBins.build(25)
+    unet.load_state_dict(torch.load(model_path, map_location='cpu')['model_state_dict'])
     unet.to(device)
 
     unet.eval()
