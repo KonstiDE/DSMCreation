@@ -15,14 +15,14 @@ from network.helper.network_helper import (
     device
 )
 
-from unet_fanned.model_im2height import IM2HEIGHT
+from unet_fanned.model_adabins import UnetAdaptiveBins
 
 from ptflops import get_model_complexity_info
 
 def estimate():
     torch.cuda.empty_cache()
 
-    model = IM2HEIGHT(in_channels=4, out_channels=1).to(device)
+    model = UnetAdaptiveBins.build(25).to(device)
 
     param_size = 0
     for param in model.parameters():

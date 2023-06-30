@@ -29,7 +29,7 @@ from torchmetrics.image import StructuralSimilarityIndexMeasure
 from metrics.zncc import zncc
 from metrics.ssim import custom_ssim
 
-from unet_fanned.model_im2height import UNET_FANNED
+from unet_fanned.model_adabins import UnetAdaptiveBins
 
 import torchvision.transforms.functional as tf
 
@@ -41,7 +41,7 @@ shutup.please()
 
 
 def test(amount, model_path, test_data_path):
-    unet = UNET_FANNED(in_channels=4, out_channels=1)
+    unet = UnetAdaptiveBins(in_channels=4, out_channels=1)
     unet.load_state_dict(torch.load(model_path)['model_state_dict'])
     unet.to(device)
 
@@ -51,8 +51,8 @@ def test(amount, model_path, test_data_path):
     loader = get_loader(test_data_path, 1, num_workers, pin_memory, amount=amount, shuffle=False)
     c = 0
 
-    if not os.path.exists("/home/fkt48uj/nrw/results_L1Loss_Adam_IM2HEIGHT/results"):
-        os.mkdir("/home/fkt48uj/nrw/results_L1Loss_Adam_IM2HEIGHT/results")
+    if not os.path.exists("/home/fkt48uj/nrw/results_L1Loss_Adam_UnetAdaptiveBins_ada/results"):
+        os.mkdir("/home/fkt48uj/nrw/results_L1Loss_Adam_UnetAdaptiveBins_ada/results")
 
     mae = MeanAbsoluteError().to(device)
     mse = MeanSquaredError().to(device)
