@@ -33,6 +33,12 @@ sys.modules["module.name"] = foo_v4
 spec_v4.loader.exec_module(foo_v4)
 unet_v4 = foo_v4.UNET_FANNED(in_channels=4, out_channels=1)
 
+spec_adabins = importlib.util.spec_from_file_location("module.name", "/home/fkt48uj/nrw/network/unet_fanned/model_adabins.py")
+foo_adabins = importlib.util.module_from_spec(spec_adabins)
+sys.modules["module.name"] = foo_adabins
+spec_adabins.loader.exec_module(foo_adabins)
+unet_adabins = foo_adabins.UnetAdaptiveBins.build(25)
+
 
 warnings.filterwarnings("ignore")
 
@@ -40,6 +46,7 @@ DATA_PATH = "/home/fkt48uj/nrw/dataset/data/test/"
 MODEL_PATH_V1 = "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v1/model_epoch18.pt"
 MODEL_PATH_V2 = "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v2/model_epoch19.pt"
 MODEL_PATH_V4 = "/home/fkt48uj/nrw/results_L1Loss_Adam_UNET_FANNED_v4/model_epoch24.pt"
+MODEL_PATH_ADABINS = "/home/fkt48uj/nrw/results_L1Loss_Adam_UnetAdaptiveBins_ada/model_epoch10.pt"
 BATCH_SIZE = 1
 DEVICE = "cuda:0"
 px = 1 / plt.rcParams['figure.dpi']
@@ -61,7 +68,7 @@ def perform_tests(loader, models, multiencoders, sample_ids=None):
     if sample_ids is None:
         sample_ids = [1, 2]
 
-    for height in range(35, 45):
+    for height in range(30, 37):
         fig, axs = plt.subplots(len(sample_ids), 2 + len(models), figsize=(29, height))
 
         h = 0
@@ -143,15 +150,17 @@ def setup():
     unet_v1.load_state_dict(torch.load(MODEL_PATH_V1, map_location='cpu')['model_state_dict'])
     unet_v2.load_state_dict(torch.load(MODEL_PATH_V2, map_location='cpu')['model_state_dict'])
     unet_v4.load_state_dict(torch.load(MODEL_PATH_V4, map_location='cpu')['model_state_dict'])
+    unet_adabins.load_state_dict(torch.load(MODEL_PATH_ADABINS, map_location='cpu')['model_state_dict'])
 
     unet_v1.eval()
     unet_v2.eval()
     unet_v4.eval()
+    unet_adabins.eval()
 
     perform_tests(
         test_loader,
-        [unet_v1, unet_v4, unet_v2],
-        [False, True, True],
+        [unet_v1, unet_v4, unet_v2, unet_adabins],
+        [False, True, True, False],
         [
             #urban:
             "ndom50_32350_5684_1_nw_2019_9~SENTINEL2X_20190215-000000-000_L3A_T32ULB_C_V1-2.npz",
